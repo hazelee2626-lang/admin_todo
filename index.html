@@ -665,7 +665,32 @@
     else el.innerHTML=esc(appTitle);
     document.title=appTitle;
   }
-  
+  // ✨ [새로 추가] 앱 이름 편집 상태 관리 변수
+let isEditingAppName = false;
+
+// ── [핵심 수정] 앱 이름 렌더링 + 인라인 편집 로직 ──
+function renderTitle() {
+  const display = document.getElementById('appNameDisplay');
+  const gearBtn = document.getElementById('gearBtn');
+
+  // 평상시 모드
+  display.innerHTML = '';
+  const parts = appTitle.split(' ');
+  if (parts.length >= 2) {
+    const last = parts.pop();
+    display.innerHTML = `${esc(parts.join(' '))} <em>${esc(last)}</em>`;
+  } else {
+    display.innerHTML = esc(appTitle);
+  }
+  document.title = appTitle; // 브라우저 탭 이름도 변경
+
+  // [중요] 톱니바퀴를 누르면 앱 이름 수정 모드로 변하게 바꿉니다.
+  gearBtn.onclick = toggleAppNameEdit;
+  gearBtn.textContent = '⚙'; // 평상시 아이콘
+  gearBtn.classList.remove('editing-title');
+  gearBtn.style.color = 'var(--dim)';
+}
+
   // ══════════════════════════════════════════════════════
   //  Theme engine
   // ══════════════════════════════════════════════════════
@@ -1389,28 +1414,72 @@
       userBox.innerHTML = `☁️ <b style="color:var(--text)">${currentUser.email}</b> 계정으로 동기화 중`;
       sv.appendChild(userBox);
     }
-    const nh=document.createElement('div'); nh.className='settings-heading'; nh.textContent=L().settingAppName;
-    const nc=document.createElement('div'); nc.className='settings-card';
-    const nr=document.createElement('div'); nr.className='settings-row';
-    nr.style.gap='10px';
-    nr.innerHTML=`
-      <div class="settings-info">
-        <input id="appNameSettingInput"
-          style="width:100%;background:none;border:none;border-bottom:1.5px solid var(--gold);
-                 color:var(--text);font-family:inherit;font-size:16px;font-weight:700;
-                 padding:4px 2px;outline:none;letter-spacing:-0.3px;"
-          value="${esc(appTitle)}" placeholder="${L().appNamePlaceholder}">
-      </div>`;
-    nr.querySelector('#appNameSettingInput').onchange=function(){
-      const v=this.value.trim();
-      if(v){appTitle=v;LS.set('hz_title',appTitle);renderTitle();}
+  // ✨ [새로 추가] 앱 이름 수정 모드 토글 함수 (⚙️ <-> ✓)
+function toggleAppNameEdit(e) {
+  if (e) e.stopPropagation(); // 설정창 여는 이벤트 전파 방지
+
+  const display = document.getElementById('appNameDisplay');
+  const gearBtn = document.getElementById('gearBtn');
+
+  if (!isEditingAppName) {
+    // ── 수정 모드로 전환 ──
+    isEditingAppName = true;
+
+    // 1. 글자 자리에 입력창(Input) 넣기
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.id = 'appNameInput';
+    // ✨ 입력창에도 하젤의 골드 포인트를 주는 스타일!
+    inp.style.cssText = "font-size:20px; font-weight:800; color:var(--gold); background:var(--surf2); border:1px dashed var(--gold); border-radius:8px; padding:2px 8px; width:160px; font-family:inherit;";
+    inp.value = appTitle;
+    inp.autocomplete = 'off';
+    display.replaceWith(inp); // <div>를 <input>으로 교체
+
+    // 2. 톱니바퀴를 확인(✓) 버튼으로 바꾸기
+    gearBtn.textContent = '✓';
+    gearBtn.style.color = 'var(--gold)'; // 강조색
+    gearBtn.classList.add('editing-title');
+
+    // 3. 포커스 & 전체 선택
+    requestAnimationFrame(() => {
+      inp.focus();
+      inp.select();
+    });
+
+    // 4. 입력창에서 엔터 치면 저장
+    inp.onkeydown = (e) => {
+      if (e.key === 'Enter') { commitAppNameEdit(); }
+      if (e.key === 'Escape') { isEditingAppName = false; renderTitle(); } // 취소
     };
-    nr.querySelector('#appNameSettingInput').onkeydown=function(e){
-      if(e.key==='Enter'){this.blur();}
-    };
-    nc.appendChild(nr);
-    const nw=document.createElement('div'); nw.className='settings-section'; nw.append(nh,nc); sv.appendChild(nw);
-  
+
+  } else {
+    // ── 저장 및 평상시 모드로 복귀 ──
+    commitAppNameEdit();
+  }
+}
+
+// ✨ [새로 추가] 앱 이름 편집 완료 및 저장 함수
+function commitAppNameEdit() {
+  const inp = document.getElementById('appNameInput');
+  if (!inp) return;
+
+  const newTitle = inp.value.trim();
+  if (newTitle && newTitle !== appTitle) {
+    appTitle = newTitle;
+    LS.set('hz_title', appTitle); // 로컬 저장
+    window.saveToCloud(); // 클라우드 저장
+  }
+
+  // 뼈대 원복 (div id="appNameDisplay")
+  const display = document.createElement('div');
+  display.id = 'appNameDisplay';
+  display.className = 'app-name';
+  inp.replaceWith(display);
+
+  isEditingAppName = false;
+  renderTitle(); // 다시 그리기 (평상시 모드)
+}
+
     // Theme picker
     const th=document.createElement('div'); th.className='settings-heading'; th.textContent=L().settingTheme;
     const tc=document.createElement('div'); tc.className='settings-card';

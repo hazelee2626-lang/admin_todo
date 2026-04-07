@@ -1382,7 +1382,13 @@ function updateMatrixGauges(secKey){
 function renderSettings(){
   const sv=document.getElementById('settingsView'); sv.innerHTML='';
 
-  // ── App name editor ──
+  //   //
+  if (currentUser) {
+    const userBox = document.createElement('div');
+    userBox.style.cssText = "padding:12px; font-size:12px; color:var(--dim); text-align:center; background:var(--surf2); border-radius:14px; margin-bottom:16px; border:1px dashed var(--border);";
+    userBox.innerHTML = `☁️ <b style="color:var(--text)">${currentUser.email}</b> 계정으로 동기화 중`;
+    sv.appendChild(userBox);
+  }
   const nh=document.createElement('div'); nh.className='settings-heading'; nh.textContent=L().settingAppName;
   const nc=document.createElement('div'); nc.className='settings-card';
   const nr=document.createElement('div'); nr.className='settings-row';

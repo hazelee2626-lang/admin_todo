@@ -1,1810 +1,1326 @@
-  <!DOCTYPE html>
-  
-  <html lang="ko">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Hazel Check">
-    <title>Hazel Check</title>
-    <style>
-      @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css');
-  
-  ```
-  :root {
-    --bg:#12100B; --surface:#1B1813; --surf2:#232018; --surf3:#2A2620;
-    --text:#EEE8DC; --dim:#9A8E7E; --faint:#5A5248; --border:#2B2720;
-    --gold:#D4A853; --discord:#5865F2;
-  }
-  /* ── Themes ── */
-  [data-theme="cream"] {
-    --bg:#FDFAF4; --surface:#FFFFFF; --surf2:#F0EDE6; --surf3:#EAE7E0;
-    --text:#2C2420; --dim:#9A9690; --faint:#C0BCB8; --border:#E0DCD4;
-  }
-  [data-theme="gray"] {
-    --bg:#F4F4F6; --surface:#FFFFFF; --surf2:#E8E8EE; --surf3:#E0E0E8;
-    --text:#1A1A2E; --dim:#8888A0; --faint:#B8B8CC; --border:#DCDDE2;
-  }
-  [data-theme="mint"] {
-    --bg:#F0F7F4; --surface:#FFFFFF; --surf2:#DEF0E8; --surf3:#D4E8E0;
-    --text:#1A2E28; --dim:#6A9080; --faint:#A8C4BC; --border:#C8E0D4;
-  }
-  [data-theme="pink"] {
-    --bg:#FDF4F4; --surface:#FFFFFF; --surf2:#F0DEDE; --surf3:#E8D4D4;
-    --text:#2E1A1A; --dim:#907070; --faint:#C4A8A8; --border:#EAD4D4;
-  }
-  /* progress bar stays gold in all themes */
-  .prog-fill { background: linear-gradient(90deg,#D4A853,#C4898B) !important; }
-  /* Theme overrides — applied via data-theme on <html> */
-  [data-theme="cream"] {
-    --bg:#FDFAF4; --surface:#FFFFFF; --surf2:#F0EDE6; --surf3:#E8E4DC;
-    --text:#2C2420; --dim:#9A9690; --faint:#C0BCB6; --border:#E0DCD4;
-  }
-  [data-theme="gray"] {
-    --bg:#F4F4F6; --surface:#FFFFFF; --surf2:#E8E8EE; --surf3:#E0E0E8;
-    --text:#1A1A2E; --dim:#8888A0; --faint:#C0C0D0; --border:#DCDDE2;
-  }
-  [data-theme="mint"] {
-    --bg:#F0F7F4; --surface:#FFFFFF; --surf2:#DEF0E8; --surf3:#D0E8E0;
-    --text:#1A2E28; --dim:#6A9080; --faint:#A8C8C0; --border:#C8E0D4;
-  }
-  [data-theme="pink"] {
-    --bg:#FDF4F4; --surface:#FFFFFF; --surf2:#F0DEDE; --surf3:#E8D4D4;
-    --text:#2E1A1A; --dim:#907070; --faint:#C8A8A8; --border:#EAD4D4;
-  }
-  /* Light themes: dark text on light bg needs inverted streak/toggle */
-  [data-theme="cream"] .streak-pill,
-  [data-theme="gray"]  .streak-pill,
-  [data-theme="mint"]  .streak-pill,
-  [data-theme="pink"]  .streak-pill { background:rgba(212,168,83,.15); border-color:rgba(212,168,83,.35); }
-  [data-theme="cream"] .is-dragging,
-  [data-theme="gray"]  .is-dragging,
-  [data-theme="mint"]  .is-dragging,
-  [data-theme="pink"]  .is-dragging { box-shadow:0 8px 24px rgba(0,0,0,.15); }
-  
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  body{background:var(--bg);color:var(--text);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;min-height:100svh;padding-bottom:calc(150px + env(safe-area-inset-bottom));overflow-x:hidden;}
-  
-  /* ═══ HEADER ═══════════════════════════════════════ */
-  header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top) + 18px) 16px 12px;}
-  .hdr-row1{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
-  .app-name-wrap{display:flex;align-items:center;gap:5px;}
-  .app-name{font-size:20px;font-weight:700;letter-spacing:-0.4px;color:var(--text);}
-  .app-name em{color:var(--gold);font-style:normal;}
-  .app-name-input{font-size:20px;font-weight:700;letter-spacing:-0.4px;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--text);outline:none;width:160px;padding:0;}
-  .gear-btn{width:26px;height:26px;border-radius:50%;background:var(--surf2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;touch-action:manipulation;transition:border-color .2s,background .2s;flex-shrink:0;}
-  .gear-btn:active{background:var(--surf3);}
-  .gear-btn.editing-name{border-color:rgba(123,174,140,.5);color:#7BAE8C;}
-  .hdr-right{margin-left:auto;display:flex;align-items:center;gap:7px;}
-  .streak-pill{display:flex;align-items:center;gap:4px;background:rgba(212,168,83,.12);border:1px solid rgba(212,168,83,.25);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--gold);}
-  @keyframes streakPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
-  .streak-pill.pulse{animation:streakPulse .5s ease;}
-  .view-toggle{display:flex;background:var(--surf2);border:1px solid var(--border);border-radius:9px;overflow:hidden;}
-  .vtog{background:none;border:none;padding:5px 10px;font-size:12px;font-weight:500;color:var(--dim);cursor:pointer;transition:background .15s,color .15s;}
-  .vtog.active{background:var(--gold);color:#12100B;font-weight:700;}
-  .date-lbl{font-size:11px;color:var(--dim);margin-bottom:10px;}
-  .prog-track{height:2px;background:var(--border);border-radius:2px;overflow:hidden;}
-  .prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),#C4898B);border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
-  .prog-label{text-align:right;font-size:11px;color:var(--dim);margin-top:5px;}
-  
-  /* ═══ VIEWS ════════════════════════════════════════ */
-  #listView{padding:10px 16px;display:flex;flex-direction:column;gap:10px;}
-  #matrixView{display:none;padding:10px 14px;flex-direction:column;gap:10px;}
-  #settingsView{display:none;padding:10px 16px;flex-direction:column;gap:12px;}
-  
-  /* ═══ LIST CARDS ═══════════════════════════════════ */
-  .sec-card{background:var(--surface);border-radius:18px;overflow:hidden;}
-  .sec-head{display:flex;align-items:center;gap:9px;padding:13px 12px 11px 16px;}
-  .sec-pip{width:3px;height:16px;border-radius:2px;flex-shrink:0;}
-  .sec-emoji{font-size:15px;cursor:pointer;touch-action:manipulation;transition:transform .15s;}
-  .sec-name{font-size:13px;font-weight:600;flex:1;}
-  .sec-stat{font-size:11px;color:var(--dim);margin-right:5px;}
-  .sec-edit-btn{background:var(--surf2);border:1px solid var(--border);border-radius:20px;font-family:inherit;font-size:14px;color:var(--dim);cursor:pointer;padding:4px 9px;transition:background .15s,color .15s,border-color .15s;line-height:1;}
-  .sec-card.editing .sec-edit-btn{background:var(--col);border-color:var(--col);color:var(--bg);font-weight:700;}
-  .sec-divider{height:1px;background:var(--border);margin:0 16px;}
-  .item-list{list-style:none;}
-  
-  .item-li{display:flex;align-items:center;gap:10px;padding:11px 14px 11px 10px;border-bottom:1px solid var(--border);user-select:none;-webkit-user-select:none;position:relative;overflow:hidden;}
-  .item-inner{display:flex;align-items:center;gap:10px;flex:1;min-width:0;transition:transform .2s ease;will-change:transform;}
-  .swipe-del-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:#B05858;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;letter-spacing:.3px;border-radius:0 0 0 0;opacity:0;transition:opacity .15s;}
-  .item-li.swipe-reveal .swipe-del-bg{opacity:1;}
-  .item-li:last-child{border-bottom:none;}
-  
-  /* Drag handle — always visible, subtle by default */
-  .drag-handle{
-    display:flex;align-items:center;
-    padding:4px 4px 4px 2px;
-    color:var(--border);
-    font-size:15px;cursor:grab;touch-action:none;flex-shrink:0;
-    transition:color .2s;
-  }
-  .drag-handle:active{color:var(--dim);cursor:grabbing;}
-  /* Brighter when in edit mode */
-  .sec-card.editing .drag-handle{color:var(--dim);}
-  
-  .item-box{width:22px;height:22px;flex-shrink:0;border-radius:7px;border:1.5px solid var(--col);position:relative;cursor:pointer;touch-action:manipulation;transition:background .2s,border-color .2s;}
-  .item-box::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border-right:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(45deg) scale(0);transition:transform .18s cubic-bezier(.34,1.56,.64,1);}
-  .item-li.done .item-box{background:var(--col);border-color:var(--col);}
-  .item-li.done .item-box::after{transform:rotate(45deg) scale(1);}
-  
-  .item-label{flex:1;font-size:15px;font-weight:400;position:relative;transition:color .25s;word-break:keep-all;line-height:1.4;cursor:default;}
-  .item-label::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);height:1.5px;width:0%;background:var(--col);transition:width .32s ease;}
-  .item-li.done .item-label{color:var(--dim);}
-  .item-li.done .item-label::after{width:100%;}
-  
-  .item-time{font-size:10px;color:var(--dim);white-space:nowrap;flex-shrink:0;opacity:0;transform:translateY(2px);transition:opacity .3s,transform .3s;}
-  .item-li.done .item-time{opacity:1;transform:translateY(0);}
-  
-  .item-del{display:none;background:rgba(176,112,112,.15);border:none;border-radius:8px;color:#C47A7A;font-size:18px;font-weight:700;line-height:1;cursor:pointer;padding:4px 10px;flex-shrink:0;}
-  .sec-card.editing .item-del{display:flex;align-items:center;}
-  
-  .item-li.is-dragging{background:var(--surf2);box-shadow:0 8px 28px rgba(0,0,0,.55);border-radius:12px;z-index:10;}
-  
-  .inline-input{flex:1;background:var(--surf2);border:1.5px solid var(--col,var(--gold));border-radius:8px;padding:5px 10px;color:var(--text);font-family:inherit;font-size:15px;outline:none;}
-  .add-row{display:flex;align-items:center;gap:8px;padding:10px 14px 14px 16px;}
-  .add-input{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:11px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .15s;}
-  .add-input::placeholder{color:var(--dim);}
-  .add-input:focus{border-color:var(--col,var(--gold));}
-  .add-btn{border:none;border-radius:11px;padding:10px 15px;background:var(--col);color:var(--bg);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;}
-  .quick-add{display:flex;align-items:center;gap:7px;padding:10px 12px 13px 16px;font-size:13px;color:var(--dim);cursor:pointer;touch-action:manipulation;}
-  .quick-add:active{color:var(--text);}
-  .sec-drag-handle{display:flex;align-items:center;padding:4px 4px;color:var(--border);font-size:15px;cursor:grab;touch-action:none;flex-shrink:0;margin-left:auto;transition:color .2s;}
-  .sec-drag-handle:active{color:var(--dim);}
-  .quick-plus{font-size:18px;font-weight:300;line-height:1;}
-  
-  /* ═══ MATRIX VIEW ══════════════════════════════════ */
-  .gauge-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface);border-radius:16px;padding:12px 8px 10px;}
-  .gauge-item{display:flex;flex-direction:column;align-items:center;gap:4px;}
-  .arc-outer{position:relative;width:52px;height:52px;}
-  .arc-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
-  .arc-track{fill:none;stroke:var(--border);stroke-width:4;}
-  .arc-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);}
-  .arc-emoji-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
-  .gauge-nums{font-size:10px;font-weight:600;}
-  .gauge-name{font-size:9px;color:var(--faint);text-align:center;}
-  
-  .m-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .m-quad{background:var(--surface);border-radius:16px;overflow:hidden;}
-  .m-quad-head{display:flex;align-items:center;gap:5px;padding:10px 10px 8px;}
-  .m-pip{width:3px;height:14px;border-radius:2px;flex-shrink:0;}
-  .m-quad-emoji{font-size:13px;}
-  .m-quad-name{font-size:12px;font-weight:700;flex:1;}
-  .m-quad-stat{font-size:10px;color:var(--dim);}
-  .m-minibar-wrap{height:2px;background:var(--border);margin:0 10px 6px;border-radius:2px;overflow:hidden;}
-  .m-minibar-fill{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
-  .m-quad-divider{height:1px;background:var(--border);margin:0 10px 4px;}
-  .m-items{padding:0 4px 4px;}
-  
-  .m-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:8px;user-select:none;-webkit-user-select:none;}
-  /* Matrix drag handle — always visible, very subtle */
-  .m-drag{display:flex;align-items:center;color:var(--border);font-size:13px;cursor:grab;touch-action:none;flex-shrink:0;padding:0 2px;}
-  .m-sec-drag{display:flex;align-items:center;color:var(--border);font-size:12px;cursor:grab;touch-action:none;flex-shrink:0;padding:2px 4px;transition:color .2s;}
-  .m-sec-drag:active{color:var(--dim);}
-  .m-drag:active{color:var(--dim);}
-  .m-item.is-dragging{background:var(--surf2);box-shadow:0 4px 16px rgba(0,0,0,.5);border-radius:8px;z-index:10;}
-  
-  .m-box{width:16px;height:16px;flex-shrink:0;border-radius:5px;border:1.5px solid var(--col);position:relative;cursor:pointer;touch-action:manipulation;transition:background .2s;}
-  .m-box::after{content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;border-right:1.5px solid var(--bg);border-bottom:1.5px solid var(--bg);transform:rotate(45deg) scale(0);transition:transform .18s cubic-bezier(.34,1.56,.64,1);}
-  .m-item.done .m-box{background:var(--col);border-color:var(--col);}
-  .m-item.done .m-box::after{transform:rotate(45deg) scale(1);}
-  
-  .m-text{flex:1;font-size:12px;line-height:1.35;word-break:keep-all;position:relative;transition:color .25s;}
-  .m-text::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);height:1px;width:0%;background:var(--col);transition:width .28s ease;}
-  .m-item.done .m-text{color:var(--dim);}
-  .m-item.done .m-text::after{width:100%;}
-  
-  .m-add{padding:5px 10px 10px;font-size:11px;color:var(--faint);cursor:pointer;touch-action:manipulation;}
-  .m-add:active{color:var(--dim);}
-  .m-add-row{display:flex;gap:6px;padding:4px 8px 10px;}
-  .m-add-input{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:inherit;font-size:12px;outline:none;transition:border-color .15s;}
-  .m-add-input::placeholder{color:var(--faint);}
-  .m-add-input:focus{border-color:var(--col,var(--gold));}
-  .m-add-btn{background:var(--col);border:none;border-radius:8px;color:var(--bg);font-family:inherit;font-size:11px;font-weight:700;padding:7px 10px;cursor:pointer;}
-  
-  /* ═══ SETTINGS ══════════════════════════════════════ */
-  .settings-section{display:flex;flex-direction:column;gap:1px;}
-  .settings-heading{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;padding:0 4px 8px;}
-  .settings-card{background:var(--surface);border-radius:16px;overflow:hidden;}
-  .settings-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
-  .settings-row:last-child{border-bottom:none;}
-  .settings-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center;}
-  .settings-info{flex:1;}
-  .settings-label{font-size:15px;font-weight:400;}
-  .settings-sub{font-size:11px;color:var(--dim);margin-top:2px;}
-  .toggle-switch{position:relative;width:44px;height:26px;flex-shrink:0;}
-  .toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
-  .toggle-track{position:absolute;inset:0;border-radius:13px;background:var(--border);transition:background .2s;cursor:pointer;}
-  .toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--dim);transition:transform .2s,background .2s;}
-  .toggle-switch input:checked~.toggle-track{background:var(--gold);}
-  .toggle-switch input:checked~.toggle-track .toggle-thumb{transform:translateX(18px);background:#12100B;}
-  .sec-mgr-item{display:flex;align-items:center;gap:10px;padding:12px 14px 12px 16px;border-bottom:1px solid var(--border);}
-  .sec-mgr-item:last-child{border-bottom:none;}
-  .sec-mgr-color{width:18px;height:18px;border-radius:5px;flex-shrink:0;cursor:pointer;transition:transform .15s;}
-  .sec-mgr-color:active{transform:scale(1.15);}
-  .sec-mgr-emoji{font-size:16px;flex-shrink:0;cursor:pointer;}
-  .sec-mgr-name{flex:1;background:none;border:none;color:var(--text);font-family:inherit;font-size:14px;outline:none;cursor:text;}
-  .sec-mgr-del{background:rgba(176,112,112,.12);border:none;border-radius:7px;color:#C47A7A;font-size:16px;padding:3px 9px;cursor:pointer;}
-  .add-sec-row{display:flex;align-items:center;gap:8px;padding:10px 14px 14px 16px;}
-  .add-sec-input{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;}
-  .add-sec-input::placeholder{color:var(--dim);}
-  .add-sec-btn{background:var(--gold);border:none;border-radius:10px;color:#12100B;font-family:inherit;font-size:13px;font-weight:700;padding:9px 14px;cursor:pointer;}
-  .color-palette{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px 14px;}
-  .cp-swatch{width:28px;height:28px;border-radius:7px;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;touch-action:manipulation;}
-  .cp-swatch.selected{border-color:var(--text);transform:scale(1.15);}
-  .emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
-  .emoji-btn{background:var(--surf2);border:1px solid var(--border);border-radius:10px;font-size:22px;padding:8px;cursor:pointer;text-align:center;touch-action:manipulation;}
-  .danger-btn{width:100%;padding:14px;background:rgba(176,112,112,.08);border:1px solid rgba(176,112,112,.2);border-radius:14px;color:#C47A7A;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;text-align:center;}
-  
-  /* ═══ FOOTER ════════════════════════════════════════ */
-  .footer-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 16px calc(env(safe-area-inset-bottom) + 10px);background:linear-gradient(to top,var(--bg) 60%,transparent);display:flex;gap:10px;}
-  .footer-btn{flex:1;padding:14px 10px;border-radius:16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:none;touch-action:manipulation;transition:opacity .15s,transform .1s;}
-  .footer-btn:active{opacity:.8;transform:scale(.98);}
-  .btn-discord{background:var(--discord);color:#fff;}
-  .btn-reset{background:var(--surface);border:1px solid var(--border);color:var(--dim);}
-  
-  /* ═══ TOAST ═════════════════════════════════════════ */
-  .toast{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(4px);background:#252018;border:1px solid #3A3328;border-radius:14px;padding:11px 18px;font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;z-index:50;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-  
-  #confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:200;}
-  
-  /* ═══ OVERLAYS ══════════════════════════════════════ */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:flex-end;padding:16px;padding-bottom:calc(env(safe-area-inset-bottom) + 16px);opacity:0;pointer-events:none;transition:opacity .22s;}
-  .overlay.show{opacity:1;pointer-events:all;}
-  .sheet{width:100%;background:#1E1C17;border-radius:22px;padding:22px 20px 20px;transform:translateY(32px);transition:transform .28s cubic-bezier(.34,1.1,.64,1);max-height:82svh;overflow-y:auto;}
-  .overlay.show .sheet{transform:translateY(0);}
-  .sheet-title{font-size:16px;font-weight:700;margin-bottom:10px;}
-  .sheet-desc{font-size:14px;color:var(--dim);line-height:1.65;margin-bottom:22px;}
-  .sheet-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-  .sheet-tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;}
-  .tag-todo{background:rgba(212,168,83,.18);color:var(--gold);}
-  .tag-done{background:rgba(88,101,242,.2);color:#8892f8;}
-  .sheet-preview{background:#2a2520;border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.9;color:var(--text);white-space:pre-wrap;word-break:break-all;margin-bottom:16px;font-family:'SF Mono','Menlo',monospace;border:1px solid var(--border);}
-  .sheet-actions{display:flex;gap:10px;}
-  .sheet-cancel{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:13px;color:var(--dim);font-family:inherit;font-size:15px;padding:14px;cursor:pointer;}
-  .sheet-ok{flex:2;border:none;border-radius:13px;color:#fff;font-family:inherit;font-size:15px;font-weight:700;padding:14px;cursor:pointer;}
-  
-  @keyframes bop{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
-  .bop{animation:bop .22s ease;}
-  ```
-  
-    </style>
-  </head>
-  <body>
-  <canvas id="confettiCanvas"></canvas>
-  
-  <header>
-    <div class="hdr-row1">
-      <div class="app-name-wrap" id="appNameWrap">
-        <div class="app-name" id="appNameDisplay"></div>
-        <div class="gear-btn" id="gearBtn">⚙</div>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hazel Check">
+  <title>Hazel Check</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css');
+:root {
+  --bg:#12100B; --surface:#1B1813; --surf2:#232018; --surf3:#2A2620;
+  --text:#EEE8DC; --dim:#9A8E7E; --faint:#5A5248; --border:#2B2720;
+  --gold:#D4A853; --discord:#5865F2;
+}
+[data-theme="cream"]{--bg:#FDFAF4;--surface:#FFFFFF;--surf2:#F0EDE6;--surf3:#E8E4DC;--text:#2C2420;--dim:#9A9690;--faint:#C0BCB6;--border:#E0DCD4;}
+[data-theme="gray"] {--bg:#F4F4F6;--surface:#FFFFFF;--surf2:#E8E8EE;--surf3:#DCDDE2;--text:#1A1A2E;--dim:#8888A0;--faint:#C0C0C8;--border:#DCDDE2;}
+[data-theme="mint"] {--bg:#F0F7F4;--surface:#FFFFFF;--surf2:#DEF0E8;--surf3:#D0E8E0;--text:#1A2E28;--dim:#6A9080;--faint:#A0C0B8;--border:#C8E0D4;}
+[data-theme="pink"] {--bg:#FDF4F4;--surface:#FFFFFF;--surf2:#F0DEDE;--surf3:#E8D0D0;--text:#2E1A1A;--dim:#907070;--faint:#C0A0A0;--border:#EAD4D4;}
+.prog-fill{background:linear-gradient(90deg,#D4A853,#C4898B) !important;}
+[data-theme="cream"] .streak-pill,
+[data-theme="gray"]  .streak-pill,
+[data-theme="mint"]  .streak-pill,
+[data-theme="pink"]  .streak-pill{background:rgba(212,168,83,.15);border-color:rgba(212,168,83,.35);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;min-height:100svh;padding-bottom:calc(150px + env(safe-area-inset-bottom));overflow-x:hidden;}
+header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top) + 18px) 16px 12px;}
+.hdr-row1{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.app-name-wrap{display:flex;align-items:center;gap:5px;}
+.app-name{font-size:20px;font-weight:700;letter-spacing:-0.4px;color:var(--text);}
+.app-name em{color:var(--gold);font-style:normal;}
+.app-name-input{font-size:20px;font-weight:700;letter-spacing:-0.4px;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--text);outline:none;width:160px;padding:0;}
+.gear-btn{width:26px;height:26px;border-radius:50%;background:var(--surf2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;touch-action:manipulation;transition:border-color .2s,background .2s;flex-shrink:0;}
+.gear-btn:active{background:var(--surf3);}
+.gear-btn.editing-name{border-color:rgba(123,174,140,.5);color:#7BAE8C;}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:7px;}
+.streak-pill{display:flex;align-items:center;gap:4px;background:rgba(212,168,83,.12);border:1px solid rgba(212,168,83,.25);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--gold);}
+@keyframes streakPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.streak-pill.pulse{animation:streakPulse .5s ease;}
+.view-toggle{display:flex;background:var(--surf2);border:1px solid var(--border);border-radius:9px;overflow:hidden;}
+.vtog{background:none;border:none;padding:5px 10px;font-size:12px;font-weight:500;color:var(--dim);cursor:pointer;transition:background .15s,color .15s;}
+.vtog.active{background:var(--gold);color:#12100B;font-weight:700;}
+.date-lbl{font-size:11px;color:var(--dim);margin-bottom:10px;}
+.prog-track{height:2px;background:var(--border);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),#C4898B);border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.prog-label{text-align:right;font-size:11px;color:var(--dim);margin-top:5px;}
+#listView{padding:10px 16px;display:flex;flex-direction:column;gap:10px;}
+#matrixView{display:none;padding:10px 14px;flex-direction:column;gap:10px;}
+#settingsView{display:none;padding:10px 16px;flex-direction:column;gap:12px;}
+.sec-card{background:var(--surface);border-radius:18px;overflow:hidden;}
+.sec-head{display:flex;align-items:center;gap:9px;padding:13px 12px 11px 16px;}
+.sec-pip{width:3px;height:16px;border-radius:2px;flex-shrink:0;}
+.sec-emoji{font-size:15px;cursor:pointer;touch-action:manipulation;transition:transform .15s;}
+.sec-name{font-size:13px;font-weight:600;flex:1;}
+.sec-stat{font-size:11px;color:var(--dim);margin-right:5px;}
+.sec-edit-btn{background:var(--surf2);border:1px solid var(--border);border-radius:20px;font-family:inherit;font-size:14px;color:var(--dim);cursor:pointer;padding:4px 9px;transition:background .15s,color .15s,border-color .15s;line-height:1;}
+.sec-card.editing .sec-edit-btn{background:var(--col);border-color:var(--col);color:var(--bg);font-weight:700;}
+.sec-divider{height:1px;background:var(--border);margin:0 16px;}
+.item-list{list-style:none;}
+.item-li{display:flex;align-items:center;gap:10px;padding:11px 14px 11px 10px;border-bottom:1px solid var(--border);user-select:none;-webkit-user-select:none;position:relative;overflow:hidden;}
+.item-inner{display:flex;align-items:center;gap:10px;flex:1;min-width:0;transition:transform .2s ease;will-change:transform;}
+.swipe-del-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:#B05858;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;opacity:0;transition:opacity .15s;}
+.item-li.swipe-reveal .swipe-del-bg{opacity:1;}
+.item-li:last-child{border-bottom:none;}
+.drag-handle{display:flex;align-items:center;padding:4px 4px 4px 2px;color:var(--border);font-size:15px;cursor:grab;touch-action:none;flex-shrink:0;transition:color .2s;}
+.drag-handle:active{color:var(--dim);cursor:grabbing;}
+.sec-card.editing .drag-handle{color:var(--dim);}
+.item-box{width:22px;height:22px;flex-shrink:0;border-radius:7px;border:1.5px solid var(--col);position:relative;cursor:pointer;touch-action:manipulation;transition:background .2s,border-color .2s;}
+.item-box::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border-right:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(45deg) scale(0);transition:transform .18s cubic-bezier(.34,1.56,.64,1);}
+.item-li.done .item-box{background:var(--col);border-color:var(--col);}
+.item-li.done .item-box::after{transform:rotate(45deg) scale(1);}
+.item-label{flex:1;font-size:15px;font-weight:400;position:relative;transition:color .25s;word-break:keep-all;line-height:1.4;cursor:default;}
+.item-label::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);height:1.5px;width:0%;background:var(--col);transition:width .32s ease;}
+.item-li.done .item-label{color:var(--dim);}
+.item-li.done .item-label::after{width:100%;}
+.item-time{font-size:10px;color:var(--dim);white-space:nowrap;flex-shrink:0;opacity:0;transform:translateY(2px);transition:opacity .3s,transform .3s;}
+.item-li.done .item-time{opacity:1;transform:translateY(0);}
+.item-del{display:none;background:rgba(176,112,112,.15);border:none;border-radius:8px;color:#C47A7A;font-size:18px;font-weight:700;line-height:1;cursor:pointer;padding:4px 10px;flex-shrink:0;}
+.sec-card.editing .item-del{display:flex;align-items:center;}
+.item-li.is-dragging{background:var(--surf2);box-shadow:0 8px 28px rgba(0,0,0,.55);border-radius:12px;z-index:10;}
+.inline-input{flex:1;background:var(--surf2);border:1.5px solid var(--col,var(--gold));border-radius:8px;padding:5px 10px;color:var(--text);font-family:inherit;font-size:15px;outline:none;}
+.add-row{display:flex;align-items:center;gap:8px;padding:10px 14px 14px 16px;}
+.add-input{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:11px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .15s;}
+.add-input::placeholder{color:var(--dim);}
+.add-input:focus{border-color:var(--col,var(--gold));}
+.add-btn{border:none;border-radius:11px;padding:10px 15px;background:var(--col);color:var(--bg);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.quick-add{display:flex;align-items:center;gap:7px;padding:10px 12px 13px 16px;font-size:13px;color:var(--dim);cursor:pointer;touch-action:manipulation;}
+.quick-add:active{color:var(--text);}
+.sec-drag-handle{display:flex;align-items:center;padding:4px;color:var(--border);font-size:15px;cursor:grab;touch-action:none;flex-shrink:0;margin-left:auto;transition:color .2s;}
+.sec-drag-handle:active{color:var(--dim);}
+.quick-plus{font-size:18px;font-weight:300;line-height:1;}
+.gauge-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface);border-radius:16px;padding:12px 8px 10px;}
+.gauge-item{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.arc-outer{position:relative;width:52px;height:52px;}
+.arc-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+.arc-track{fill:none;stroke:var(--border);stroke-width:4;}
+.arc-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);}
+.arc-emoji-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.gauge-nums{font-size:10px;font-weight:600;}
+.gauge-name{font-size:9px;color:var(--faint);text-align:center;}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.m-quad{background:var(--surface);border-radius:16px;overflow:hidden;}
+.m-quad-head{display:flex;align-items:center;gap:5px;padding:10px 10px 8px;}
+.m-pip{width:3px;height:14px;border-radius:2px;flex-shrink:0;}
+.m-quad-emoji{font-size:13px;}
+.m-quad-name{font-size:12px;font-weight:700;flex:1;}
+.m-quad-stat{font-size:10px;color:var(--dim);}
+.m-minibar-wrap{height:2px;background:var(--border);margin:0 10px 6px;border-radius:2px;overflow:hidden;}
+.m-minibar-fill{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.m-quad-divider{height:1px;background:var(--border);margin:0 10px 4px;}
+.m-items{padding:0 4px 4px;}
+.m-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:8px;user-select:none;-webkit-user-select:none;}
+.m-drag{display:flex;align-items:center;color:var(--border);font-size:13px;cursor:grab;touch-action:none;flex-shrink:0;padding:0 2px;}
+.m-sec-drag{display:flex;align-items:center;color:var(--border);font-size:12px;cursor:grab;touch-action:none;flex-shrink:0;padding:2px 4px;transition:color .2s;}
+.m-sec-drag:active,.m-drag:active{color:var(--dim);}
+.m-item.is-dragging{background:var(--surf2);box-shadow:0 4px 16px rgba(0,0,0,.5);border-radius:8px;z-index:10;}
+.m-box{width:16px;height:16px;flex-shrink:0;border-radius:5px;border:1.5px solid var(--col);position:relative;cursor:pointer;touch-action:manipulation;transition:background .2s;}
+.m-box::after{content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;border-right:1.5px solid var(--bg);border-bottom:1.5px solid var(--bg);transform:rotate(45deg) scale(0);transition:transform .18s cubic-bezier(.34,1.56,.64,1);}
+.m-item.done .m-box{background:var(--col);border-color:var(--col);}
+.m-item.done .m-box::after{transform:rotate(45deg) scale(1);}
+.m-text{flex:1;font-size:12px;line-height:1.35;word-break:keep-all;position:relative;transition:color .25s;}
+.m-text::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);height:1px;width:0%;background:var(--col);transition:width .28s ease;}
+.m-item.done .m-text{color:var(--dim);}
+.m-item.done .m-text::after{width:100%;}
+.m-add{padding:5px 10px 10px;font-size:11px;color:var(--faint);cursor:pointer;touch-action:manipulation;}
+.m-add:active{color:var(--dim);}
+.m-add-row{display:flex;gap:6px;padding:4px 8px 10px;}
+.m-add-input{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:inherit;font-size:12px;outline:none;transition:border-color .15s;}
+.m-add-input::placeholder{color:var(--faint);}
+.m-add-input:focus{border-color:var(--col,var(--gold));}
+.m-add-btn{background:var(--col);border:none;border-radius:8px;color:var(--bg);font-family:inherit;font-size:11px;font-weight:700;padding:7px 10px;cursor:pointer;}
+.settings-section{display:flex;flex-direction:column;gap:1px;}
+.settings-heading{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;padding:0 4px 8px;}
+.settings-card{background:var(--surface);border-radius:16px;overflow:hidden;}
+.settings-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center;}
+.settings-info{flex:1;}
+.settings-label{font-size:15px;font-weight:400;}
+.settings-sub{font-size:11px;color:var(--dim);margin-top:2px;}
+.toggle-switch{position:relative;width:44px;height:26px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{position:absolute;inset:0;border-radius:13px;background:var(--border);transition:background .2s;cursor:pointer;}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--dim);transition:transform .2s,background .2s;}
+.toggle-switch input:checked~.toggle-track{background:var(--gold);}
+.toggle-switch input:checked~.toggle-track .toggle-thumb{transform:translateX(18px);background:#12100B;}
+.sec-mgr-item{display:flex;align-items:center;gap:10px;padding:12px 14px 12px 16px;border-bottom:1px solid var(--border);}
+.sec-mgr-item:last-child{border-bottom:none;}
+.sec-mgr-color{width:18px;height:18px;border-radius:5px;flex-shrink:0;cursor:pointer;transition:transform .15s;}
+.sec-mgr-color:active{transform:scale(1.15);}
+.sec-mgr-emoji{font-size:16px;flex-shrink:0;cursor:pointer;}
+.sec-mgr-name{flex:1;background:none;border:none;color:var(--text);font-family:inherit;font-size:14px;outline:none;cursor:text;}
+.sec-mgr-del{background:rgba(176,112,112,.12);border:none;border-radius:7px;color:#C47A7A;font-size:16px;padding:3px 9px;cursor:pointer;}
+.add-sec-row{display:flex;align-items:center;gap:8px;padding:10px 14px 14px 16px;}
+.add-sec-input{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;}
+.add-sec-input::placeholder{color:var(--dim);}
+.add-sec-btn{background:var(--gold);border:none;border-radius:10px;color:#12100B;font-family:inherit;font-size:13px;font-weight:700;padding:9px 14px;cursor:pointer;}
+.color-palette{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px 14px;}
+.cp-swatch{width:28px;height:28px;border-radius:7px;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;touch-action:manipulation;}
+.cp-swatch.selected{border-color:var(--text);transform:scale(1.15);}
+.emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
+.emoji-btn{background:var(--surf2);border:1px solid var(--border);border-radius:10px;font-size:22px;padding:8px;cursor:pointer;text-align:center;touch-action:manipulation;}
+.danger-btn{width:100%;padding:14px;background:rgba(176,112,112,.08);border:1px solid rgba(176,112,112,.2);border-radius:14px;color:#C47A7A;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;text-align:center;}
+.footer-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 16px calc(env(safe-area-inset-bottom) + 10px);background:linear-gradient(to top,var(--bg) 60%,transparent);display:flex;gap:10px;}
+.footer-btn{flex:1;padding:14px 10px;border-radius:16px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:none;touch-action:manipulation;transition:opacity .15s,transform .1s;}
+.footer-btn:active{opacity:.8;transform:scale(.98);}
+.btn-discord{background:var(--discord);color:#fff;}
+.btn-reset{background:var(--surface);border:1px solid var(--border);color:var(--dim);}
+.toast{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom) + 14px);left:50%;transform:translateX(-50%) translateY(4px);background:#252018;border:1px solid #3A3328;border-radius:14px;padding:11px 18px;font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;z-index:50;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:flex;align-items:flex-end;padding:16px;padding-bottom:calc(env(safe-area-inset-bottom) + 16px);opacity:0;pointer-events:none;transition:opacity .22s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.sheet{width:100%;background:#1E1C17;border-radius:22px;padding:22px 20px 20px;transform:translateY(32px);transition:transform .28s cubic-bezier(.34,1.1,.64,1);max-height:82svh;overflow-y:auto;}
+.overlay.show .sheet{transform:translateY(0);}
+.sheet-title{font-size:16px;font-weight:700;margin-bottom:10px;}
+.sheet-desc{font-size:14px;color:var(--dim);line-height:1.65;margin-bottom:22px;}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sheet-tag{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;}
+.tag-todo{background:rgba(212,168,83,.18);color:var(--gold);}
+.tag-done{background:rgba(88,101,242,.2);color:#8892f8;}
+.sheet-preview{background:#2a2520;border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.9;color:var(--text);white-space:pre-wrap;word-break:break-all;margin-bottom:16px;font-family:'SF Mono','Menlo',monospace;border:1px solid var(--border);}
+.sheet-actions{display:flex;gap:10px;}
+.sheet-cancel{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:13px;color:var(--dim);font-family:inherit;font-size:15px;padding:14px;cursor:pointer;}
+.sheet-ok{flex:2;border:none;border-radius:13px;color:#fff;font-family:inherit;font-size:15px;font-weight:700;padding:14px;cursor:pointer;}
+@keyframes bop{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+.bop{animation:bop .22s ease;}
+  </style>
+</head>
+<body>
+<canvas id="confettiCanvas"></canvas>
+<header>
+  <div class="hdr-row1">
+    <div class="app-name-wrap" id="appNameWrap">
+      <div class="app-name" id="appNameDisplay"></div>
+      <div class="gear-btn" id="gearBtn">⚙</div>
+    </div>
+    <div class="hdr-right">
+      <div class="streak-pill" id="streakPill">🔥 <span id="streakNum">0</span><span id="streakUnit">일째</span></div>
+      <div class="view-toggle">
+        <button class="vtog active" id="btnList">☰</button>
+        <button class="vtog" id="btnMatrix">⊞</button>
       </div>
-      <div class="hdr-right">
-        <div class="streak-pill" id="streakPill">🔥 <span id="streakNum">0</span><span id="streakUnit">일째</span></div>
-        <div class="view-toggle">
-          <button class="vtog active" id="btnList">☰</button>
-          <button class="vtog" id="btnMatrix">⊞</button>
-        </div>
-        <button onclick="handleAuth()" id="authBtn" style="background:var(--surf2);border:1px solid var(--border);border-radius:20px;font-family:inherit;font-size:11px;color:var(--dim);cursor:pointer;padding:5px 11px;white-space:nowrap;">🔑 Google 로그인</button>
-      </div>
-    </div>
-    <div class="date-lbl" id="dateLbl"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
-      <span id="syncStatus" style="font-size:10px;color:var(--gold);opacity:.7;"></span>
-    </div>
-    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-    <div class="prog-label" id="progLabel">…</div>
-  </header>
-  
-  <div id="listView"></div>
-  <div id="matrixView"></div>
-  <div id="settingsView"></div>
-  
-  <div class="footer-bar" id="footerBar">
-    <button class="footer-btn btn-discord" id="discordBtn">📋 Discord</button>
-    <button class="footer-btn btn-reset" id="resetBtn">🌙</button>
-  </div>
-  <div class="toast" id="toast"></div>
-  
-  <!-- Discord -->
-  
-  <div class="overlay" id="discordOverlay">
-    <div class="sheet">
-      <div class="sheet-header"><div class="sheet-title" id="sheetTitle"></div><div class="sheet-tag" id="sheetTag"></div></div>
-      <div class="sheet-preview" id="sheetPreview"></div>
-      <div class="sheet-actions"><button class="sheet-cancel" id="discordCancel"></button><button class="sheet-ok" style="background:var(--discord);" id="discordCopy"></button></div>
+      <button onclick="handleAuth()" id="authBtn" style="background:var(--surf2);border:1px solid var(--border);border-radius:20px;font-family:inherit;font-size:11px;color:var(--dim);cursor:pointer;padding:5px 11px;white-space:nowrap;">🔑 Google 로그인</button>
     </div>
   </div>
-  <!-- Reset -->
-  <div class="overlay" id="resetOverlay">
-    <div class="sheet">
-      <div class="sheet-title" id="resetTitle"></div>
-      <div class="sheet-desc" id="resetDesc"></div>
-      <div class="sheet-actions"><button class="sheet-cancel" id="resetCancel"></button><button class="sheet-ok" style="background:var(--gold);color:#12100B;" id="resetOk"></button></div>
-    </div>
+  <div class="date-lbl" id="dateLbl"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+    <span id="syncStatus" style="font-size:10px;color:var(--gold);opacity:.7;"></span>
   </div>
-  <!-- Color -->
-  <div class="overlay" id="colorOverlay">
-    <div class="sheet">
-      <div class="sheet-title" id="colorTitle" style="margin-bottom:14px;"></div>
-      <div class="color-palette" id="colorPalette"></div>
-      <div style="margin-bottom:14px;"><div id="colorDirectLabel" style="font-size:12px;color:var(--dim);margin-bottom:8px;"></div><input id="colorHexInput" type="text" placeholder="#D4A853" style="width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:14px;outline:none;"></div>
-      <div class="sheet-actions"><button class="sheet-cancel" id="colorCancel"></button><button class="sheet-ok" style="background:var(--gold);color:#12100B;" id="colorOk"></button></div>
-    </div>
+  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  <div class="prog-label" id="progLabel">…</div>
+</header>
+<div id="listView"></div>
+<div id="matrixView"></div>
+<div id="settingsView"></div>
+<div class="footer-bar" id="footerBar">
+  <button class="footer-btn btn-discord" id="discordBtn">📋 Discord 인증</button>
+  <button class="footer-btn btn-reset" id="resetBtn">🌙 마무리</button>
+</div>
+<div class="toast" id="toast"></div>
+<div class="overlay" id="discordOverlay">
+  <div class="sheet">
+    <div class="sheet-header"><div class="sheet-title" id="sheetTitle"></div><div class="sheet-tag" id="sheetTag"></div></div>
+    <div class="sheet-preview" id="sheetPreview"></div>
+    <div class="sheet-actions"><button class="sheet-cancel" id="discordCancel">취소</button><button class="sheet-ok" style="background:var(--discord);" id="discordCopy">📋 복사하기</button></div>
   </div>
-  <!-- Emoji -->
-  <div class="overlay" id="emojiOverlay">
-    <div class="sheet">
-      <div class="sheet-title" id="emojiTitle" style="margin-bottom:14px;"></div>
-      <div class="emoji-grid" id="emojiGrid"></div>
-      <div class="sheet-actions"><button class="sheet-cancel" id="emojiCancel"></button></div>
-    </div>
+</div>
+<div class="overlay" id="resetOverlay">
+  <div class="sheet">
+    <div class="sheet-title" id="resetTitle">오늘 하루 수고했어 🌙</div>
+    <div class="sheet-desc" id="resetDesc">체크 내역만 초기화할게.<br>항목 목록은 그대로 남아있어.</div>
+    <div class="sheet-actions"><button class="sheet-cancel" id="resetCancel">취소</button><button class="sheet-ok" style="background:var(--gold);color:#12100B;" id="resetOk">리셋할게</button></div>
   </div>
-  <!-- Danger -->
-  <div class="overlay" id="dangerOverlay">
-    <div class="sheet">
-      <div class="sheet-title" id="dangerTitle">전체 초기화 ⚠️</div>
-      <div class="sheet-desc" id="dangerDesc">모든 데이터가 삭제돼.<br>섹션, 항목, 체크 기록, 스트릭까지 전부.</div>
-      <div class="sheet-actions"><button class="sheet-cancel" id="dangerCancel"></button><button class="sheet-ok" style="background:#B07070;" id="dangerOk"></button></div>
-    </div>
+</div>
+<div class="overlay" id="colorOverlay">
+  <div class="sheet">
+    <div class="sheet-title" id="colorTitle" style="margin-bottom:14px;">섹션 색상 변경</div>
+    <div class="color-palette" id="colorPalette"></div>
+    <div style="margin-bottom:14px;"><div id="colorDirectLabel" style="font-size:12px;color:var(--dim);margin-bottom:8px;">직접 입력</div><input id="colorHexInput" type="text" placeholder="#D4A853" style="width:100%;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-family:inherit;font-size:14px;outline:none;"></div>
+    <div class="sheet-actions"><button class="sheet-cancel" id="colorCancel">취소</button><button class="sheet-ok" style="background:var(--gold);color:#12100B;" id="colorOk">적용</button></div>
   </div>
-  
-  <script type="module">
-  // ══════════════════════════════════════════════════════
-  //  Firebase — Google 로그인 + Realtime DB 동기화
-  // ══════════════════════════════════════════════════════
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
-    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-  import { getDatabase, ref, set, get, onValue }
-    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-  
-  const firebaseConfig = {
-    apiKey: "AIzaSyAp9OwLP6uthZUyUmOMG648fvxRcs7MxmE",
-    authDomain: "hyperdodo-hazel.firebaseapp.com",
-    databaseURL: "https://hyperdodo-hazel-default-rtdb.firebaseio.com",
-    projectId: "hyperdodo-hazel",
-    storageBucket: "hyperdodo-hazel.firebasestorage.app",
-    messagingSenderId: "691673973840",
-    appId: "1:691673973840:web:6caaf412e505f580f3bd55"
-  };
-  
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-  
-  let currentUser = null;
-  let syncTimeout = null;
-  
-  // ── Auth state listener ──
-  onAuthStateChanged(auth, user => {
-    currentUser = user;
-    const btn = document.getElementById('authBtn');
-    const userInfo = document.getElementById('userInfo');
-    if (user) {
-      if (btn) { btn.textContent = '로그아웃'; btn.style.color = 'var(--gold)'; }
-      if (userInfo) userInfo.textContent = user.email || user.displayName || '';
-      loadFromCloud();
+</div>
+<div class="overlay" id="emojiOverlay">
+  <div class="sheet">
+    <div class="sheet-title" id="emojiTitle" style="margin-bottom:14px;">이모지 변경</div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <div class="sheet-actions"><button class="sheet-cancel" id="emojiCancel">취소</button></div>
+  </div>
+</div>
+<div class="overlay" id="dangerOverlay">
+  <div class="sheet">
+    <div class="sheet-title">전체 초기화 ⚠️</div>
+    <div class="sheet-desc">모든 데이터가 삭제돼.<br>섹션, 항목, 체크 기록, 스트릭까지 전부.</div>
+    <div class="sheet-actions"><button class="sheet-cancel" id="dangerCancel">취소</button><button class="sheet-ok" style="background:#B07070;" id="dangerOk">전부 초기화</button></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, set, remove, onValue }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAp9OwLP6uthZUyUmOMG648fvxRcs7MxmE",
+  authDomain: "hyperdodo-hazel.firebaseapp.com",
+  databaseURL: "https://hyperdodo-hazel-default-rtdb.firebaseio.com",
+  projectId: "hyperdodo-hazel",
+  storageBucket: "hyperdodo-hazel.firebasestorage.app",
+  messagingSenderId: "691673973840",
+  appId: "1:691673973840:web:6caaf412e505f580f3bd55"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUser = null;
+const unsubscribers = []; // 리스너 해제용
+
+// ══════════════════════════════════════════════════════
+//  원자 단위 Firebase 쓰기 함수들
+//  각 함수는 딱 하나의 경로만 건드림
+// ══════════════════════════════════════════════════════
+
+// 체크 상태 1개만 쓰기
+async function fbWriteCheck(itemId, isChecked, timestamp) {
+  if (!currentUser) return;
+  try {
+    const uid = currentUser.uid;
+    if (isChecked) {
+      await set(ref(db, `users/${uid}/checked/${itemId}`), true);
+      await set(ref(db, `users/${uid}/checkedTimes/${itemId}`), timestamp);
     } else {
-      if (btn) { btn.textContent = '🔑 Google 로그인'; btn.style.color = 'var(--dim)'; }
-      if (userInfo) userInfo.textContent = '';
+      await remove(ref(db, `users/${uid}/checked/${itemId}`));
+      await remove(ref(db, `users/${uid}/checkedTimes/${itemId}`));
     }
-  });
-  
-  // ── Google sign-in ──
-  window.handleAuth = async function() {
-    if (currentUser) {
-      await signOut(auth);
-      showToast('로그아웃됐어.');
-    } else {
-      try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        showToast('로그인 완료! 데이터 불러오는 중…');
-      } catch(e) {
-        showToast('로그인 실패: ' + e.message);
-      }
+  } catch(e) { showSyncStatus('⚠ 저장 실패'); }
+}
+
+// 섹션 구조 전체 쓰기 (항목 추가/삭제/순서변경/이름변경)
+// Firebase에서 배열 순서를 보장하려면 JSON.parse(JSON.stringify())로 직렬화
+async function fbWriteSections() {
+  if (!currentUser) return;
+  try {
+    const payload = JSON.parse(JSON.stringify(sections));
+    await set(ref(db, `users/${currentUser.uid}/sections`), payload);
+    showSyncStatus('☁ 저장됨');
+  } catch(e) { showSyncStatus('⚠ 저장 실패'); }
+}
+
+// 스트릭/날짜만 쓰기
+async function fbWriteStreak() {
+  if (!currentUser) return;
+  try {
+    const uid = currentUser.uid;
+    await set(ref(db, `users/${uid}/streak`), streak);
+    await set(ref(db, `users/${uid}/lastReset`), lastReset);
+  } catch(e) {}
+}
+
+// 체크 전체 초기화 (마무리 버튼)
+async function fbClearChecked() {
+  if (!currentUser) return;
+  try {
+    const uid = currentUser.uid;
+    await remove(ref(db, `users/${uid}/checked`));
+    await remove(ref(db, `users/${uid}/checkedTimes`));
+  } catch(e) {}
+}
+
+// 설정/테마/언어/제목 각각 쓰기
+async function fbWriteMeta(key, value) {
+  if (!currentUser) return;
+  try {
+    await set(ref(db, `users/${currentUser.uid}/${key}`), value);
+  } catch(e) {}
+}
+
+// 전체 초기화
+async function fbNukeAll() {
+  if (!currentUser) return;
+  try {
+    await remove(ref(db, `users/${currentUser.uid}`));
+  } catch(e) {}
+}
+
+function showSyncStatus(msg) {
+  const el = document.getElementById('syncStatus');
+  if (el) { el.textContent = msg; setTimeout(() => el.textContent = '', 3000); }
+}
+
+// ══════════════════════════════════════════════════════
+//  실시간 리스너 — 경로별로 분리
+// ══════════════════════════════════════════════════════
+// Firebase는 배열을 객체로 반환할 수 있어서 항상 변환해줘야 함
+function toArr(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  // Firebase가 {"0":{...},"1":{...}} 객체로 반환한 경우
+  return Object.values(val);
+}
+
+function normalizeSections(raw) {
+  return toArr(raw).map(sec => ({
+    ...sec,
+    items: toArr(sec.items)
+  }));
+}
+
+function startRealtimeSync() {
+  stopRealtimeSync();
+  const uid = currentUser.uid;
+
+  // ① sections 리스너 — 구조 변경 감지
+  const unsubSections = onValue(ref(db, `users/${uid}/sections`), snap => {
+    if (!snap.exists()) {
+      // 첫 사용: 로컬 데이터 올리기
+      fbWriteSections();
+      return;
     }
-  };
-  
-  // ── Save to cloud (debounced 2s) ──
-  window.saveToCloud = function() {
-    if (!currentUser) return;
-    clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(async () => {
-      const payload = {
-        sections, checked, checkedTimes, streak, lastReset, appTitle, settings, curTheme, curLang
-      };
-      try {
-        await set(ref(db, 'users/' + currentUser.uid), payload);
-        showSyncStatus('☁ 저장됨');
-      } catch(e) { showSyncStatus('⚠ 저장 실패'); }
-    }, 2000);
-  };
-  
-  // ── Load from cloud ──
-  async function loadFromCloud() {
-    if (!currentUser) return;
-    try {
-      const snap = await get(ref(db, 'users/' + currentUser.uid));
-      if (snap.exists()) {
-        const d = snap.val();
-        if (d.sections)     { sections = d.sections;         LS.set('hz_sections', sections); }
-        if (d.checked)      { checked = d.checked;           LS.set('hz_checked', checked); }
-        if (d.checkedTimes) { checkedTimes = d.checkedTimes; LS.set('hz_ctimes', checkedTimes); }
-        if (d.streak != null){ streak = d.streak;            LS.set('hz_streak', streak); }
-        if (d.lastReset)    { lastReset = d.lastReset;       LS.set('hz_lastReset', lastReset); }
-        if (d.appTitle)     { appTitle = d.appTitle;         LS.set('hz_title', appTitle); }
-        if (d.settings)     { settings = d.settings;         LS.set('hz_settings', settings); }
-        if (d.curTheme)     { curTheme = d.curTheme;         LS.set('hz_theme', curTheme); }
-        if (d.curLang)      { curLang = d.curLang;           LS.set('hz_lang', curLang); }
-        renderTitle(); applyTheme(curTheme); applyLang(curLang);
-        if (curView === 'list') render();
-        else if (curView === 'matrix') renderMatrix();
-        updateHeader();
-        showToast('☁ 클라우드에서 불러왔어!');
-      } else {
-        showSyncStatus('☁ 첫 사용 — 저장됨');
-        window.saveToCloud();
-      }
-    } catch(e) { showSyncStatus('⚠ 불러오기 실패'); }
-  }
-  
-  function showSyncStatus(msg) {
-    const el = document.getElementById('syncStatus');
-    if (el) { el.textContent = msg; setTimeout(() => el.textContent = '', 3000); }
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Constants
-  // ══════════════════════════════════════════════════════
-  const PALETTE=['#D4A853','#C4898B','#7BAE8C','#7B9FC4','#9B8DC4','#C4A87B','#7BC4B4','#C47B9B','#A8C47B','#7B9BC4','#D48053','#8CC47B'];
-  const EMOJIS=['💼','📚','🌿','🔥','⭐','🎯','💡','🏃','🎨','📝','🎵','🌸','🍀','💪','🧘','📖','✏️','🌙','☀️','🌈','🦋','🌺','🍎','🎉'];
-  const DEFAULTS=[
-    {key:'work',    name:'Work',    emoji:'💼', col:'#D4A853', items:[]},
-    {key:'growth',  name:'1%',      emoji:'📈', col:'#7BAE8C', items:[]},
-    {key:'routine', name:'일상·루틴',emoji:'🌿', col:'#C4898B', items:[]},
-    {key:'challenge',name:'기타',   emoji:'🔥', col:'#7B9FC4', items:[]}
-  ];
-  
-  // ══════════════════════════════════════════════════════
-  //  Storage
-  // ══════════════════════════════════════════════════════
-  const LS={
-    get:(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):JSON.parse(JSON.stringify(fb));}catch{return JSON.parse(JSON.stringify(fb));}},
-    set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
-  };
-  
-  // ══════════════════════════════════════════════════════
-  //  State
-  // ══════════════════════════════════════════════════════
-  let sections    =LS.get('hz_sections',DEFAULTS);
-  let checked     =LS.get('hz_checked',{});
-  let checkedTimes=LS.get('hz_ctimes',{});
-  let streak      =LS.get('hz_streak',0);
-  let lastReset   =LS.get('hz_lastReset',null);
-  let appTitle    =LS.get('hz_title','Hazel Check');
-  let settings    =LS.get('hz_settings',{arcGauge:true,miniBar:true,gaugeLabel:true});
-  let curTheme    =LS.get('hz_theme','dark');
-  let curLang     =LS.get('hz_lang','ko');
-  let editKey     =null;
-  let curView     ='list';
-  let editingName =false;
-  let wasAllDone  =false;
-  
-  // ══════════════════════════════════════════════════════
-  //  Util
-  // ══════════════════════════════════════════════════════
-  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
-  const dayDiff=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
-  const allItems=()=>sections.flatMap(s=>s.items);
-  const findSec=id=>sections.find(s=>s.items.some(it=>it.id===id));
-  const uid=p=>`${p}_${Date.now()}_${Math.random().toString(36).slice(2,5)}`;
-  
-  // ══════════════════════════════════════════════════════
-  //  Translations
-  // ══════════════════════════════════════════════════════
-  const LANG = {
-    ko: {
-      editBtn: '✏️', doneBtn: '✓',
-      quickAdd: '항목 추가 / 편집', addPlaceholder: '새 항목 입력…', addBtn: '추가',
-      mAddTrig: '+ 항목 추가', mAddPlaceholder: '새 항목…',
-      discordBtn: '📋 Discord 인증', resetBtn: '🌙 마무리',
-      loading: '로딩 중...',
-      complete: (d,t)=>`${d} / ${t} 완료`,
-      streakUnit: '일째',
-      btnList: '☰', btnMatrix: '⊞',
-      discordTodo: '오늘 할 일 공유 📋', discordDone: '완료 인증 공유 ✅',
-      tagTodo: '#해야할일', tagDone: '#완료한일',
-      discordTodoHash: '#해야할일', discordDoneHash: '#완료한일',
-      copyBtn: '📋 복사하기', cancelBtn: '취소',
-      resetTitle: '오늘 하루 수고했어 🌙',
-      resetDesc: '체크 내역만 초기화할게.\n항목 목록은 그대로 남아있어.',
-      resetOk: '리셋할게',
-      toastCopied: '복사 완료! Discord에 붙여넣기 해줘 🎉',
-      toastReset: (n)=>`🔥 ${n}일째 달성! 오늘도 수고했어`,
-      toastAllDone: '🎉 전부 완료! 오늘 진짜 잘했어!',
-      toastColorChanged: '색상 변경됐어!',
-      toastEmojiChanged: '이모지 변경됐어!',
-      toastSecAdded: (n)=>`섹션 "${n}" 추가됐어!`,
-      toastSecDeleted: '섹션 삭제됐어.',
-      toastMinSec: '섹션이 하나 이상 있어야 해!',
-      toastColorErr: '올바른 색상 코드를 입력해줘 (예: #D4A853)',
-      toastReset2: '전체 초기화 완료!',
-      settingAppName: '앱 이름', settingTheme: '테마', settingViz: '🎨 시각화',
-      settingSection: '섹션 관리', settingData: '데이터',
-      settingLang: '언어',
-      arcLabel: '원형 게이지', arcSub: '매트릭스 뷰 상단 섹션별 원형 진행률',
-      barLabel: '카드 미니 진행 바', barSub: '각 사분면 헤더 아래 얇은 색상 바',
-      gaugeLabelLabel: '게이지 이름 표시', gaugeLabelSub: '원형 게이지 아래 섹션 이름',
-      addSecPlaceholder: '새 섹션 이름…', addSecBtn: '+ 추가',
-      dangerBtn: '⚠️ 전체 초기화',
-      dangerTitle: '전체 초기화 ⚠️',
-      dangerDesc: '모든 데이터가 삭제돼.\n섹션, 항목, 체크 기록, 스트릭까지 전부.',
-      dangerOk: '전부 초기화',
-      colorTitle: '섹션 색상 변경', colorHexPlaceholder: '#D4A853',
-      colorDirectLabel: '직접 입력', colorOk: '적용',
-      emojiTitle: '이모지 변경',
-      appNamePlaceholder: '앱 이름 입력…',
-      days: ['일','월','화','수','목','금','토'],
-      dateFormat: (m,d,day)=>`${m}월 ${d}일 ${day}요일`,
-      ampm: (h)=>h>=12?'오후':'오전',
-      themes: {dark:'🌙 다크', cream:'☀️ 크림 화이트', gray:'🩶 쿨 그레이', mint:'🌿 민트 그린', pink:'🌸 블러쉬 핑크'},
-      themeSubs: {dark:'지금 기본', cream:'따뜻하고 클래식', gray:'모던하고 깔끔', mint:'자연스럽고 상쾌', pink:'부드럽고 감성적'},
-      langs: {ko:'🇰🇷 한국어', en:'🇺🇸 English', es:'🇪🇸 Español'},
-    },
-    en: {
-      editBtn: '✏️', doneBtn: '✓',
-      quickAdd: 'Add / Edit items', addPlaceholder: 'New item…', addBtn: 'Add',
-      mAddTrig: '+ Add item', mAddPlaceholder: 'New item…',
-      discordBtn: '📋 Discord Post', resetBtn: '🌙 End Day',
-      loading: 'Loading...',
-      complete: (d,t)=>`${d} / ${t} done`,
-      streakUnit: ' day streak',
-      btnList: '☰', btnMatrix: '⊞',
-      discordTodo: "Today's Tasks 📋", discordDone: "Day Complete ✅",
-      tagTodo: '#todo', tagDone: '#done',
-      discordTodoHash: '#todo', discordDoneHash: '#done',
-      copyBtn: '📋 Copy', cancelBtn: 'Cancel',
-      resetTitle: "Great work today 🌙",
-      resetDesc: "This will clear today's checks.\nYour items will stay.",
-      resetOk: 'Reset',
-      toastCopied: 'Copied! Paste into Discord 🎉',
-      toastReset: (n)=>`🔥 ${n}-day streak! Keep it up!`,
-      toastAllDone: '🎉 All done! Amazing work today!',
-      toastColorChanged: 'Color updated!',
-      toastEmojiChanged: 'Emoji updated!',
-      toastSecAdded: (n)=>`Section "${n}" added!`,
-      toastSecDeleted: 'Section deleted.',
-      toastMinSec: 'You need at least one section!',
-      toastColorErr: 'Enter a valid hex code (e.g. #D4A853)',
-      toastReset2: 'All data cleared!',
-      settingAppName: 'App Name', settingTheme: 'Theme', settingViz: '🎨 Display',
-      settingSection: 'Sections', settingData: 'Data',
-      settingLang: 'Language',
-      arcLabel: 'Arc Gauges', arcSub: 'Section progress rings in matrix view',
-      barLabel: 'Mini Progress Bar', barSub: 'Thin bar below each quadrant header',
-      gaugeLabelLabel: 'Show gauge labels', gaugeLabelSub: 'Section names under arc gauges',
-      addSecPlaceholder: 'New section name…', addSecBtn: '+ Add',
-      dangerBtn: '⚠️ Reset All Data',
-      dangerTitle: 'Reset All Data ⚠️',
-      dangerDesc: 'This will delete everything.\nSections, items, history, streak — all gone.',
-      dangerOk: 'Reset Everything',
-      colorTitle: 'Change Section Color', colorHexPlaceholder: '#D4A853',
-      colorDirectLabel: 'Custom hex', colorOk: 'Apply',
-      emojiTitle: 'Change Emoji',
-      appNamePlaceholder: 'Enter app name…',
-      days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-      dateFormat: (m,d,day)=>`${day}, ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`,
-      ampm: (h)=>h>=12?'PM':'AM',
-      themes: {dark:'🌙 Dark', cream:'☀️ Cream White', gray:'🩶 Cool Gray', mint:'🌿 Mint Green', pink:'🌸 Blush Pink'},
-      themeSubs: {dark:'Default', cream:'Warm & classic', gray:'Modern & clean', mint:'Fresh & natural', pink:'Soft & cozy'},
-      langs: {ko:'🇰🇷 한국어', en:'🇺🇸 English', es:'🇪🇸 Español'},
-    },
-    es: {
-      editBtn: '✏️', doneBtn: '✓',
-      quickAdd: 'Agregar / Editar', addPlaceholder: 'Nuevo elemento…', addBtn: 'Agregar',
-      mAddTrig: '+ Agregar', mAddPlaceholder: 'Nuevo elemento…',
-      discordBtn: '📋 Publicar Discord', resetBtn: '🌙 Terminar día',
-      loading: 'Cargando...',
-      complete: (d,t)=>`${d} / ${t} completado`,
-      streakUnit: ' días seguidos',
-      btnList: '☰', btnMatrix: '⊞',
-      discordTodo: 'Tareas de hoy 📋', discordDone: 'Día completado ✅',
-      tagTodo: '#porhacer', tagDone: '#completado',
-      discordTodoHash: '#porhacer', discordDoneHash: '#completado',
-      copyBtn: '📋 Copiar', cancelBtn: 'Cancelar',
-      resetTitle: '¡Buen trabajo hoy! 🌙',
-      resetDesc: 'Se borrarán los checks de hoy.\nLos elementos quedan guardados.',
-      resetOk: 'Reiniciar',
-      toastCopied: '¡Copiado! Pégalo en Discord 🎉',
-      toastReset: (n)=>`🔥 ¡${n} días seguidos! ¡Sigue así!`,
-      toastAllDone: '🎉 ¡Todo completado! ¡Increíble!',
-      toastColorChanged: '¡Color actualizado!',
-      toastEmojiChanged: '¡Emoji actualizado!',
-      toastSecAdded: (n)=>`¡Sección "${n}" agregada!`,
-      toastSecDeleted: 'Sección eliminada.',
-      toastMinSec: '¡Necesitas al menos una sección!',
-      toastColorErr: 'Ingresa un código hex válido (ej. #D4A853)',
-      toastReset2: '¡Todos los datos eliminados!',
-      settingAppName: 'Nombre de la app', settingTheme: 'Tema', settingViz: '🎨 Pantalla',
-      settingSection: 'Secciones', settingData: 'Datos',
-      settingLang: 'Idioma',
-      arcLabel: 'Indicadores circulares', arcSub: 'Anillos de progreso en vista de matriz',
-      barLabel: 'Barra mini de progreso', barSub: 'Barra delgada bajo el encabezado',
-      gaugeLabelLabel: 'Mostrar etiquetas', gaugeLabelSub: 'Nombres de sección bajo los indicadores',
-      addSecPlaceholder: 'Nombre de sección…', addSecBtn: '+ Agregar',
-      dangerBtn: '⚠️ Borrar todo',
-      dangerTitle: 'Borrar todo ⚠️',
-      dangerDesc: 'Se eliminarán todos los datos.\nSecciones, elementos, historial y racha.',
-      dangerOk: 'Borrar todo',
-      colorTitle: 'Cambiar color de sección', colorHexPlaceholder: '#D4A853',
-      colorDirectLabel: 'Código hex personalizado', colorOk: 'Aplicar',
-      emojiTitle: 'Cambiar emoji',
-      appNamePlaceholder: 'Nombre de la app…',
-      days: ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],
-      dateFormat: (m,d,day)=>`${day} ${d} de ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][m-1]}`,
-      ampm: (h)=>h>=12?'PM':'AM',
-      themes: {dark:'🌙 Oscuro', cream:'☀️ Crema', gray:'🩶 Gris frío', mint:'🌿 Verde menta', pink:'🌸 Rosa suave'},
-      themeSubs: {dark:'Por defecto', cream:'Cálido y clásico', gray:'Moderno y limpio', mint:'Fresco y natural', pink:'Suave y acogedor'},
-      langs: {ko:'🇰🇷 한국어', en:'🇺🇸 English', es:'🇪🇸 Español'},
-    },
-  };
-  const L=()=>LANG[curLang]||LANG.ko;
-  const fmtTime=ts=>{const d=new Date(ts),h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');return `${L().ampm(h)} ${h%12||12}:${m}`;};
-  
-  // ══════════════════════════════════════════════════════
-  //  App title
-  // ══════════════════════════════════════════════════════
-  function renderTitle(){
-    const el=document.getElementById('appNameDisplay');
-    const parts=appTitle.split(' ');
-    if(parts.length>=2){const last=parts.pop();el.innerHTML=`${esc(parts.join(' '))} <em>${esc(last)}</em>`;}
-    else el.innerHTML=esc(appTitle);
-    document.title=appTitle;
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Theme engine
-  // ══════════════════════════════════════════════════════
-  const THEMES = {
-    dark:  {bg:'#12100B',surface:'#1B1813',surf2:'#232018',surf3:'#2A2620',text:'#EEE8DC',dim:'#9A8E7E',faint:'#5A5248',border:'#2B2720'},
-    cream: {bg:'#FDFAF4',surface:'#FFFFFF',surf2:'#F0EDE6',surf3:'#E8E4DC',text:'#2C2420',dim:'#9A9690',faint:'#C0BCB6',border:'#E0DCD4'},
-    gray:  {bg:'#F4F4F6',surface:'#FFFFFF',surf2:'#E8E8EE',surf3:'#DCDDE2',text:'#1A1A2E',dim:'#8888A0',faint:'#C0C0C8',border:'#DCDDE2'},
-    mint:  {bg:'#F0F7F4',surface:'#FFFFFF',surf2:'#DEF0E8',surf3:'#D0E8E0',text:'#1A2E28',dim:'#6A9080',faint:'#A0C0B8',border:'#C8E0D4'},
-    pink:  {bg:'#FDF4F4',surface:'#FFFFFF',surf2:'#F0DEDE',surf3:'#E8D0D0',text:'#2E1A1A',dim:'#907070',faint:'#C0A0A0',border:'#EAD4D4'},
-  };
-  
-  
-  
-  // ══════════════════════════════════════════════════════
-  //  Gear — tap=settings, hold=name edit
-  // ══════════════════════════════════════════════════════
-  const gear=document.getElementById('gearBtn');
-  gear.addEventListener('touchend',e=>{e.preventDefault();setView('settings');});
-  gear.addEventListener('click',e=>{if(!('ontouchstart' in window))setView('settings');});
-  
-  
-  
-  function applyLang(l){
-    curLang=l; LS.set('hz_lang',l);
-    // Update all static overlay/button text
-    const ids = {
-      'resetTitle':   ()=>L().resetTitle,
-      'resetDesc':    ()=>L().resetDesc.replace('\n','<br>'),
-      'resetCancel':  ()=>L().cancelBtn,
-      'resetOk':      ()=>L().resetOk,
-      'discordCancel':()=>L().cancelBtn,
-      'discordCopy':  ()=>L().copyBtn,
-      'colorTitle':   ()=>L().colorTitle,
-      'colorDirectLabel':()=>L().colorDirectLabel,
-      'colorCancel':  ()=>L().cancelBtn,
-      'colorOk':      ()=>L().colorOk,
-      'emojiTitle':   ()=>L().emojiTitle,
-      'emojiCancel':  ()=>L().cancelBtn,
-      'dangerTitle':  ()=>L().dangerTitle,
-      'dangerDesc':   ()=>L().dangerDesc.replace('\n','<br>'),
-      'dangerCancel': ()=>L().cancelBtn,
-      'dangerOk':     ()=>L().dangerOk,
-    };
-    Object.entries(ids).forEach(([id,fn])=>{
-      const el=document.getElementById(id);
-      if(el) el.innerHTML=fn();
-    });
-    // Footer buttons
-    const db=document.getElementById('discordBtn');
-    if(db) db.textContent=L().discordBtn;
-    const rb=document.getElementById('resetBtn');
-    if(rb) rb.textContent=L().resetBtn;
-    // View toggles
-    const bl=document.getElementById('btnList');
-    if(bl) bl.textContent=L().btnList;
-    const bm=document.getElementById('btnMatrix');
-    if(bm) bm.textContent=L().btnMatrix;
-    // Streak unit
-    const su=document.getElementById('streakUnit');
-    if(su) su.textContent=L().streakUnit;
-    // Update date display
-    initDate();
-    // Re-render current view to pick up new text
-    if(curView==='list') render();
-    else if(curView==='matrix') renderMatrix();
-    else if(curView==='settings') renderSettings();
-  }
-  
-  function startNameEdit(){
-    if(editingName) return; editingName=true;
-    const display=document.getElementById('appNameDisplay');
-    const inp=document.createElement('input'); inp.className='app-name-input'; inp.value=appTitle;
-    display.replaceWith(inp); gear.textContent='✓'; gear.classList.add('editing-name');
-    requestAnimationFrame(()=>{inp.focus();inp.select();});
-    function commit(){
-      const v=inp.value.trim()||appTitle; appTitle=v; LS.set('hz_title',appTitle);
-      const nd=document.createElement('div'); nd.id='appNameDisplay';
-      inp.replaceWith(nd); gear.textContent='⚙'; gear.classList.remove('editing-name');
-      editingName=false; renderTitle();
-    }
-    inp.onblur=commit;
-    inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=appTitle;inp.blur();}};
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  View toggle
-  // ══════════════════════════════════════════════════════
-  document.getElementById('btnList').onclick=()=>setView('list');
-  document.getElementById('btnMatrix').onclick=()=>setView('matrix');
-  
-  function setView(v){
-    curView=v;
-    ['list','matrix','settings'].forEach(n=>{
-      const el=document.getElementById(n+'View');
-      const visible=n===v;
-      el.style.display=visible?'flex':'none';
-      if(visible){el.style.flexDirection='column';el.style.gap=n==='settings'?'12px':'10px';el.style.padding=n==='list'?'10px 16px':'10px 14px';}
-    });
-    document.getElementById('btnList').classList.toggle('active',v==='list');
-    document.getElementById('btnMatrix').classList.toggle('active',v==='matrix');
-    document.getElementById('footerBar').style.display=v==='settings'?'none':'flex';
-    if(v==='list')     render();
-    if(v==='matrix')   renderMatrix();
-    if(v==='settings') renderSettings();
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  UNIVERSAL DRAG ENGINE — smooth sibling-nudge
-  //
-  //  • Dragged item follows finger via translateY (no clone).
-  //  • Siblings animate out of the way with CSS transition.
-  //  • DOM reorder happens once on touchend — no mid-drag jumps.
-  //  • Works correctly inside iframes (no position:fixed).
-  // ══════════════════════════════════════════════════════
-  let activeDrag = null;
-  
-  function initDrag(container, getItemEls, onCommit) {
-    function attach(handle) {
-      handle.addEventListener('touchstart', e => {
-        e.preventDefault(); e.stopPropagation();
-        if (activeDrag) return;
-        const item = handle.closest('[data-id]');
-        if (!item) return;
-  
-        const touch = e.touches[0];
-        const itemH = item.offsetHeight;
-        const dur = container.dataset.dragDur || '0.18s';
-  
-        // Snapshot original DOM order
-        const origEls = getItemEls();
-        const origIdx = origEls.indexOf(item);
-        let insertIdx = origIdx;
-  
-        // Lift the dragged item visually
-        item.style.transition = 'box-shadow .15s';
-        item.style.zIndex = '10';
-        item.style.position = 'relative';
-        item.classList.add('is-dragging');
-  
-        // Give siblings their transition
-        origEls.forEach(el => {
-          if (el !== item) {
-            el.style.transition = `transform ${dur} cubic-bezier(.25,.8,.25,1)`;
-            el.style.transform = '';
-          }
-        });
-  
-        activeDrag = {
-          item, container, getItemEls, onCommit,
-          itemH, dur, origIdx, insertIdx,
-          startY: touch.clientY,
-          currentY: 0,
-        };
-  
-        document.addEventListener('touchmove', onDragMove, { passive: false });
-        document.addEventListener('touchend', onDragEnd, { once: true });
-      }, { passive: false });
-    }
-  
-    container.querySelectorAll('.drag-handle, .m-drag').forEach(attach);
-    return attach;
-  }
-  
-  function onDragMove(e) {
-    if (!activeDrag) return;
-    e.preventDefault();
-  
-    const { item, container, getItemEls, itemH, origIdx } = activeDrag;
-    const dy = e.touches[0].clientY - activeDrag.startY;
-    activeDrag.currentY = dy;
-  
-    // Move dragged item
-    item.style.transform = `translateY(${dy}px)`;
-  
-    // Figure out where it would be inserted
-    const els = getItemEls();
-    let newInsert = origIdx;
-  
-    els.forEach((el, i) => {
-      if (el === item) return;
-      // How far has this el been nudged already?
-      const nudged = (i > origIdx && newInsert >= i) ? -itemH
-                   : (i < origIdx && newInsert <= i) ?  itemH : 0;
-      const elCenter = el.offsetTop + nudged + el.offsetHeight / 2;
-      const dragCenter = item.offsetTop + dy + itemH / 2;
-      if (dy > 0 && dragCenter > elCenter && i > origIdx) newInsert = i;
-      if (dy < 0 && dragCenter < elCenter && i < origIdx) newInsert = i;
-    });
-  
-    activeDrag.insertIdx = newInsert;
-  
-    // Nudge siblings
-    els.forEach((el, i) => {
-      if (el === item) return;
-      let nudge = 0;
-      if (newInsert > origIdx && i > origIdx && i <= newInsert) nudge = -itemH;
-      if (newInsert < origIdx && i < origIdx && i >= newInsert) nudge =  itemH;
-      el.style.transform = nudge ? `translateY(${nudge}px)` : '';
-    });
-  }
-  
-  function onDragEnd() {
-    if (!activeDrag) return;
-    document.removeEventListener('touchmove', onDragMove);
-  
-    const { item, container, getItemEls, onCommit, origIdx, insertIdx } = activeDrag;
-  
-    // Snap item back (DOM reorder will position it correctly)
-    item.style.transform = '';
-    item.style.transition = '';
-    item.style.zIndex = '';
-    item.style.position = '';
-    item.classList.remove('is-dragging');
-  
-    // Reset sibling transforms instantly before DOM move
-    getItemEls().forEach(el => {
-      el.style.transition = '';
-      el.style.transform = '';
-    });
-  
-    // Reorder DOM once
-    if (insertIdx !== origIdx) {
-      const els = getItemEls();
-      const ref = els[insertIdx];
-      if (ref) {
-        if (insertIdx > origIdx) container.insertBefore(item, ref.nextSibling || null);
-        else                      container.insertBefore(item, ref);
-      }
-    }
-  
-    const newOrder = getItemEls().map(el => el.dataset.id);
-    onCommit(newOrder);
-    activeDrag = null;
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  LIST VIEW
-  // ══════════════════════════════════════════════════════
-  function render(){
-    const lv=document.getElementById('listView');
-    lv.innerHTML='';
-    sections.forEach(sec=>lv.appendChild(buildCard(sec)));
+    // ← 배열/객체 변환 처리
+    const cloud = normalizeSections(snap.val());
+    // 내용이 같으면 re-render 스킵
+    if (JSON.stringify(cloud) === JSON.stringify(sections)) return;
+    sections = cloud;
+    LS.set('hz_sections', sections);
+    if (curView === 'list') render();
+    else if (curView === 'matrix') renderMatrix();
     updateHeader();
-    // Init section-level drag after all cards are in DOM
-    initSecDrag(lv);
-  }
-  
-  function initSecDrag(container){
-    // Attach drag to each section drag handle
-    const cards=Array.from(container.querySelectorAll('.sec-card'));
-    cards.forEach(card=>{
-      const handle=document.getElementById('sdh_'+card.dataset.key);
-      if(!handle) return;
-      const getCards=()=>Array.from(container.querySelectorAll('.sec-card'));
-      handle.addEventListener('touchstart', e=>{
-        e.preventDefault(); e.stopPropagation();
-        if(activeDrag) return;
-        const dur='0.20s';
-        const origEls=getCards();
-        const origIdx=origEls.indexOf(card);
-        card.classList.add('is-dragging');
-        origEls.forEach(el=>{if(el!==card)el.style.transition=`transform ${dur} cubic-bezier(.25,.8,.25,1)`;});
-        activeDrag={
-          item:card, container, getItemEls:getCards, dur,
-          origIdx, insertIdx:origIdx,
-          itemH:card.offsetHeight,
-          startY:e.touches[0].clientY,
-          onCommit: newOrder=>{
-            sections=newOrder.map(id=>sections.find(s=>s.key===id)).filter(Boolean);
-            LS.set('hz_sections',sections);
-            // No re-render needed - DOM order already reflects new order
-          }
-        };
-        document.addEventListener('touchmove',onDragMove,{passive:false});
-        document.addEventListener('touchend',onDragEnd,{once:true});
-      },{passive:false});
-    });
-  }
-  
-  function buildCard(sec){
-    const isEditing=editKey===sec.key;
-    const doneCount=sec.items.filter(it=>checked[it.id]).length;
-    const allDone=sec.items.length>0&&doneCount===sec.items.length;
-    const card=document.createElement('div');
-    card.className='sec-card'+(isEditing?' editing':'')+(allDone?' all-done':'');
-    card.dataset.key=sec.key; card.dataset.id=sec.key; card.style.setProperty('--col',sec.col);
-  
-    const head=document.createElement('div'); head.className='sec-head';
-    head.innerHTML=`<div class="sec-pip" style="background:${sec.col}"></div><span class="sec-emoji">${sec.emoji}</span><span class="sec-name">${esc(sec.name)}</span><span class="sec-stat" id="stat_${sec.key}">${doneCount}/${sec.items.length}</span><button class="sec-edit-btn">${isEditing?L().doneBtn:L().editBtn}</button>`;
-    head.querySelector('.sec-edit-btn').onclick=()=>toggleEdit(sec.key);
-    // Tap emoji → open emoji picker directly
-    head.querySelector('.sec-emoji').addEventListener('click', e=>{
-      e.stopPropagation();
-      openEmojiPicker(sec.key);
-    });
-    head.querySelector('.sec-emoji').addEventListener('touchend', e=>{
-      e.preventDefault(); e.stopPropagation();
-      openEmojiPicker(sec.key);
-    }, {passive:false});
-  
-    const divider=document.createElement('div'); divider.className='sec-divider';
-    const DUR_MAP={work:'0.20s',growth:'0.20s',routine:'0.20s',challenge:'0.20s'};
-    const ul=document.createElement('ul'); ul.className='item-list'; ul.id=`list_${sec.key}`;
-    ul.dataset.dragDur=DUR_MAP[sec.key]||'0.18s';
-    sec.items.forEach(item=>ul.appendChild(buildItem(sec,item,isEditing)));
-    card.append(head,divider,ul);
-  
-    const getEls=()=>Array.from(ul.querySelectorAll('.item-li'));
-    const attachFn=initDrag(ul, getEls, newOrder=>{
-      sec.items=newOrder.map(id=>sec.items.find(it=>it.id===id)).filter(Boolean);
-      LS.set('hz_sections',sections); saveToCloud();
-      if(curView==='matrix') syncMatrixOrder(sec.key);
-    });
-    card._attachDrag=attachFn;
-  
-    if(isEditing){
-      const ar=document.createElement('div'); ar.className='add-row';
-      ar.innerHTML=`<input class="add-input" id="addinput_${sec.key}" placeholder="${L().addPlaceholder}" autocomplete="off"><button class="add-btn">${L().addBtn}</button>`;
-      ar.querySelector('.add-input').onkeydown=e=>{if(e.key==='Enter')doAdd(sec.key);};
-      ar.querySelector('.add-btn').onclick=()=>doAdd(sec.key);
-      card.appendChild(ar);
-    } else {
-      const qa=document.createElement('div'); qa.className='quick-add';
-      qa.innerHTML=`<span class="quick-plus" style="color:${sec.col}">+</span><span>${L().quickAdd}</span><div class="sec-drag-handle" id="sdh_${sec.key}">⠿</div>`;
-      // Click on + text area toggles edit, but NOT on drag handle
-      qa.addEventListener('click', e=>{
-        if(!e.target.closest('.sec-drag-handle')) toggleEdit(sec.key);
-      });
-      card.appendChild(qa);
-    }
-    return card;
-  }
-  
-  function buildItem(sec,item,isEditing){
-    const isDone=!!checked[item.id];
-    const li=document.createElement('li');
-    li.className='item-li'+(isDone?' done':'');
-    li.dataset.id=item.id; li.style.setProperty('--col',sec.col);
-    const ts=isDone&&checkedTimes[item.id]?fmtTime(checkedTimes[item.id]):'';
-    li.innerHTML=`
-      <div class="swipe-del-bg">삭제</div>
-      <div class="item-inner">
-        <div class="item-box"></div>
-        <span class="item-label">${esc(item.text)}</span>
-        <span class="item-time" id="time_${item.id}">${ts}</span>
-        <button class="item-del">−</button>
-        <div class="drag-handle">⠿</div>
-      </div>`;
-  
-    const box=li.querySelector('.item-box');
-    box.addEventListener('click',e=>{e.stopPropagation();toggleCheck(sec.key,item.id);});
-    box.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();toggleCheck(sec.key,item.id);},{passive:false});
-  
-    setupDoubleTap(li.querySelector('.item-label'),()=>startInlineEdit(sec,item,li));
-    li.querySelector('.item-del').onclick=e=>{e.stopPropagation();doDelete(sec.key,item.id);};
-    initSwipeDelete(li,sec.key,item.id);
-    return li;
-  }
-  
-  function setupDoubleTap(el,cb){
-    let t=null;
-    el.addEventListener('click',e=>{
-      e.stopPropagation();
-      if(t){clearTimeout(t);t=null;cb();}
-      else t=setTimeout(()=>{t=null;},280);
-    });
-  }
-  
-  function startInlineEdit(sec,item,li){
-    if(li.classList.contains('inline-editing')) return;
-    li.classList.add('inline-editing');
-    const lbl=li.querySelector('.item-label'),te=li.querySelector('.item-time');
-    const inp=document.createElement('input'); inp.className='inline-input'; inp.value=item.text; inp.style.setProperty('--col',sec.col);
-    lbl.replaceWith(inp); if(te) te.style.display='none';
-    requestAnimationFrame(()=>{inp.focus();inp.select();});
-    function commit(){
-      const t=inp.value.trim(); if(t&&t!==item.text){item.text=t;LS.set('hz_sections',sections);}
-      const sp=document.createElement('span'); sp.className='item-label'; sp.textContent=t||item.text;
-      inp.replaceWith(sp); if(te) te.style.display='';
-      li.classList.remove('inline-editing');
-      setupDoubleTap(sp,()=>startInlineEdit(sec,item,li));
-    }
-    inp.onblur=commit;
-    inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=item.text;inp.blur();}};
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Swipe-left to delete
-  // ══════════════════════════════════════════════════════
-  function initSwipeDelete(li, secKey, itemId){
-    const inner = li.querySelector('.item-inner');
-    let startX=0, startY=0, swiping=false, revealed=false;
-    const THRESHOLD = 72; // px to trigger reveal
-    const MAX = 80;
-  
-    li.addEventListener('touchstart', e=>{
-      if(activeDrag) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      swiping = false;
-    },{passive:true});
-  
-    li.addEventListener('touchmove', e=>{
-      if(activeDrag) return;
-      const dx = e.touches[0].clientX - startX;
-      const dy = e.touches[0].clientY - startY;
-  
-      // Only hijack horizontal swipes (not drags or vertical scrolls)
-      if(!swiping){
-        if(Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
-        if(Math.abs(dy) > Math.abs(dx)) return; // vertical — let scroll handle
-        if(dx > 0 && !revealed) return;         // right swipe — ignore
-        swiping = true;
-      }
-  
-      e.preventDefault();
-      const base = revealed ? -MAX : 0;
-      const tx = Math.max(-MAX, Math.min(0, base + dx));
-      inner.style.transition = 'none';
-      inner.style.transform = `translateX(${tx}px)`;
-      li.classList.toggle('swipe-reveal', tx < -20);
-    },{passive:false});
-  
-    li.addEventListener('touchend', e=>{
-      if(!swiping) return;
-      const dx = e.changedTouches[0].clientX - startX;
-      const base = revealed ? -MAX : 0;
-      const finalDx = base + dx;
-      inner.style.transition = '';
-  
-      if(finalDx < -THRESHOLD){
-        // Reveal delete zone
-        inner.style.transform = `translateX(-${MAX}px)`;
-        li.classList.add('swipe-reveal');
-        revealed = true;
-        // Auto-hide after 3s if not tapped
-        clearTimeout(li._swipeTimer);
-        li._swipeTimer = setTimeout(()=>resetSwipe(li, inner), 3000);
-      } else {
-        resetSwipe(li, inner);
-      }
-    },{passive:true});
-  
-    // Tap the red zone to confirm delete
-    li.querySelector('.swipe-del-bg').addEventListener('click', e=>{
-      e.stopPropagation();
-      // Animate out then delete
-      li.style.transition = 'opacity .2s, max-height .25s .1s, padding .25s .1s';
-      li.style.opacity = '0';
-      li.style.maxHeight = li.offsetHeight + 'px';
-      requestAnimationFrame(()=>{
-        li.style.maxHeight = '0';
-        li.style.padding = '0';
-        li.style.borderBottom = 'none';
-      });
-      setTimeout(()=>doDelete(secKey, itemId), 340);
-    });
-  
-    // Tap anywhere else resets
-    li.addEventListener('click', ()=>{
-      if(revealed){ resetSwipe(li, inner); }
-    });
-  }
-  
-  function resetSwipe(li, inner){
-    inner.style.transform = '';
-    li.classList.remove('swipe-reveal');
-    if(li._swipeTimer){ clearTimeout(li._swipeTimer); li._swipeTimer=null; }
-    // reset revealed state via closure — need a flag on the element
-    li._swipeRevealed = false;
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Toggle check (shared)
-  // ══════════════════════════════════════════════════════
-  function toggleCheck(secKey,itemId){
-    checked[itemId]=!checked[itemId];
-    if(checked[itemId]) checkedTimes[itemId]=Date.now();
-    else delete checkedTimes[itemId];
-    LS.set('hz_checked',checked); LS.set('hz_ctimes',checkedTimes); saveToCloud();
-  
-    // List DOM
-    const li=document.querySelector(`#listView .item-li[data-id="${itemId}"]`);
-    if(li){
-      li.classList.toggle('done',checked[itemId]);
-      const te=li.querySelector('.item-time');
-      if(te) te.textContent=checked[itemId]?fmtTime(checkedTimes[itemId]):'';
-      if(checked[itemId]){li.classList.add('bop');li.addEventListener('animationend',()=>li.classList.remove('bop'),{once:true});}
-    }
-    // Matrix DOM
-    const mi=document.querySelector(`#matrixView .m-item[data-id="${itemId}"]`);
-    if(mi){
-      mi.classList.toggle('done',checked[itemId]);
-      if(checked[itemId]){mi.classList.add('bop');mi.addEventListener('animationend',()=>mi.classList.remove('bop'),{once:true});}
-    }
-  
-    updateStat(secKey); updateHeader(); updateMatrixGauges(secKey);
-  
-    const allNow=allItems().every(it=>checked[it.id]);
-    if(allNow&&!wasAllDone){fireConfetti();wasAllDone=true;}
-    if(!allNow) wasAllDone=false;
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  MATRIX VIEW
-  // ══════════════════════════════════════════════════════
-  function renderMatrix(){
-    const mv=document.getElementById('matrixView');
-    mv.innerHTML='';
-  
-    if(settings.arcGauge){
-      const gaugeRow=document.createElement('div'); gaugeRow.className='gauge-row'; gaugeRow.id='gaugeRow';
-      const C=2*Math.PI*20;
-      sections.forEach(sec=>{
-        const done=sec.items.filter(it=>checked[it.id]).length,total=sec.items.length,pct=total?done/total:0;
-        const div=document.createElement('div'); div.className='gauge-item';
-        div.innerHTML=`<div class="arc-outer"><svg class="arc-svg" viewBox="0 0 48 48"><circle class="arc-track" cx="24" cy="24" r="20"/><circle class="arc-fill" id="arc_${sec.key}" cx="24" cy="24" r="20" stroke="${sec.col}" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><div class="arc-emoji-label">${sec.emoji}</div></div><div class="gauge-nums" style="color:${sec.col}" id="gnum_${sec.key}">${done}/${total}</div>${settings.gaugeLabel?'<div class="gauge-name">'+esc(sec.name)+'</div>':''}`;
-        gaugeRow.appendChild(div);
-      });
-      mv.appendChild(gaugeRow);
-    }
-  
-    const grid=document.createElement('div'); grid.className='m-grid';
-    sections.forEach(sec=>grid.appendChild(buildQuadCard(sec)));
-    mv.appendChild(grid);
-    initMatrixSecDrag(grid);
-  }
-  
-  function initMatrixSecDrag(grid){
-    const getCards=()=>Array.from(grid.querySelectorAll('.m-quad'));
-    getCards().forEach(card=>{
-      const handle=document.getElementById('msdh_'+card.dataset.id);
-      if(!handle) return;
-      handle.addEventListener('touchstart', e=>{
-        e.preventDefault(); e.stopPropagation();
-        if(activeDrag) return;
-        const origEls=getCards();
-        const origIdx=origEls.indexOf(card);
-        card.classList.add('is-dragging');
-        origEls.forEach(el=>{if(el!==card)el.style.transition='transform 0.20s cubic-bezier(.25,.8,.25,1)';});
-        activeDrag={
-          item:card, container:grid, getItemEls:getCards,
-          dur:'0.20s', origIdx, insertIdx:origIdx,
-          itemH:card.offsetHeight,
-          startY:e.touches[0].clientY,
-          onCommit: newOrder=>{
-            sections=newOrder.map(id=>sections.find(s=>s.key===id)).filter(Boolean);
-            LS.set('hz_sections',sections);
-            // Sync list view order
-            const lv=document.getElementById('listView');
-            if(lv) sections.forEach(s=>{const c=lv.querySelector(`.sec-card[data-key="${s.key}"]`);if(c)lv.appendChild(c);});
-          }
-        };
-        document.addEventListener('touchmove',onDragMove,{passive:false});
-        document.addEventListener('touchend',onDragEnd,{once:true});
-      },{passive:false});
-    });
-  }
-  
-  function buildQuadCard(sec){
-    const done=sec.items.filter(it=>checked[it.id]).length,total=sec.items.length,pct=total?done/total:0;
-    const card=document.createElement('div'); card.className='m-quad'; card.dataset.id=sec.key; card.style.setProperty('--col',sec.col);
-  
-    const head=document.createElement('div'); head.className='m-quad-head';
-    head.innerHTML=`<div class="m-sec-drag" id="msdh_${sec.key}">⠿</div><div class="m-pip" style="background:${sec.col}"></div><span class="m-quad-emoji">${sec.emoji}</span><span class="m-quad-name">${esc(sec.name)}</span><span class="m-quad-stat" id="mstat_${sec.key}">${done}/${total}</span>`;
-    card.appendChild(head);
-  
-    if(settings.miniBar){
-      const bw=document.createElement('div'); bw.className='m-minibar-wrap'; bw.id=`minibar_${sec.key}`;
-      bw.innerHTML=`<div class="m-minibar-fill" id="minifill_${sec.key}" style="width:${pct*100}%;background:${sec.col};"></div>`;
-      card.appendChild(bw);
-    } else {
-      const d=document.createElement('div'); d.className='m-quad-divider'; card.appendChild(d);
-    }
-  
-    const DUR_MAP2={work:'0.20s',growth:'0.20s',routine:'0.20s',challenge:'0.20s'};
-    const items=document.createElement('div'); items.className='m-items'; items.id=`mitems_${sec.key}`;
-    items.dataset.dragDur=DUR_MAP2[sec.key]||'0.18s';
-    sec.items.forEach(item=>items.appendChild(buildMItem(sec,item)));
-    card.appendChild(items);
-  
-    // ── Always-on drag for matrix items ──
-    const getEls=()=>Array.from(items.querySelectorAll('.m-item'));
-    initDrag(items, getEls, newOrder=>{
-      sec.items=newOrder.map(id=>sec.items.find(it=>it.id===id)).filter(Boolean);
-      LS.set('hz_sections',sections);
-      // Sync list view
-      syncListOrder(sec.key);
-    });
-  
-    // Add row
-    let isAdding=false;
-    const addTrig=document.createElement('div'); addTrig.className='m-add';
-    addTrig.innerHTML=`<span style="color:${sec.col}">+</span> ${L().mAddTrig.slice(2)}`;
-    addTrig.onclick=()=>{
-      if(isAdding) return; isAdding=true; addTrig.style.display='none';
-      const ar=document.createElement('div'); ar.className='m-add-row'; ar.style.setProperty('--col',sec.col);
-      ar.innerHTML=`<input class="m-add-input" placeholder="${L().mAddPlaceholder}" autocomplete="off"><button class="m-add-btn">${L().addBtn}</button>`;
-      const inp=ar.querySelector('.m-add-input');
-      const doIt=()=>{
-        const txt=inp.value.trim(); if(!txt) return;
-        const newId=uid(sec.key); sec.items.push({id:newId,text:txt}); LS.set('hz_sections',sections);
-        const row=buildMItem(sec,{id:newId,text:txt}); items.appendChild(row);
-        // Register drag on the new item's handle
-        const newHandle=row.querySelector('.m-drag');
-        if(newHandle){
-          const getEls2=()=>Array.from(items.querySelectorAll('.m-item'));
-          newHandle.addEventListener('touchstart',e=>{
-            e.preventDefault(); e.stopPropagation();
-            if(activeDrag) return;
-            activeDrag={item:row,container:items,getItemEls:getEls2,onCommit:newOrder=>{
-              sec.items=newOrder.map(id=>sec.items.find(it=>it.id===id)).filter(Boolean);
-              LS.set('hz_sections',sections); syncListOrder(sec.key);
-            },startY:e.touches[0].clientY};
-            row.classList.add('is-dragging');
-            document.addEventListener('touchmove',onDragMove,{passive:false});
-            document.addEventListener('touchend',onDragEnd,{once:true});
-          },{passive:false});
-        }
-        inp.value=''; inp.focus();
-        updateStat(sec.key); updateHeader(); updateMatrixGauges(sec.key);
-      };
-      inp.onkeydown=e=>{if(e.key==='Enter')doIt();if(e.key==='Escape'){ar.remove();addTrig.style.display='';isAdding=false;}};
-      ar.querySelector('.m-add-btn').onclick=doIt;
-      card.insertBefore(ar,addTrig);
-      setTimeout(()=>inp.focus(),50);
-    };
-    card.appendChild(addTrig);
-    return card;
-  }
-  
-  function buildMItem(sec,item){
-    const isDone=!!checked[item.id];
-    const row=document.createElement('div');
-    row.className='m-item'+(isDone?' done':''); row.dataset.id=item.id; row.style.setProperty('--col',sec.col);
-    row.innerHTML=`<div class="m-box"></div><span class="m-text">${esc(item.text)}</span><div class="m-drag">⠿</div>`;
-  
-    const box=row.querySelector('.m-box');
-    box.addEventListener('click',e=>{e.stopPropagation();toggleCheck(sec.key,item.id);});
-    box.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();toggleCheck(sec.key,item.id);},{passive:false});
-  
-    setupDoubleTap(row.querySelector('.m-text'), ()=>startMInlineEdit(sec,item,row));
-    return row;
-  }
-  
-  function startMInlineEdit(sec,item,row){
-    if(row.classList.contains('inline-editing')) return;
-    row.classList.add('inline-editing');
-    const textEl=row.querySelector('.m-text');
-    const inp=document.createElement('input');
-    inp.className='m-add-input';
-    inp.style.cssText='flex:1;font-size:12px;padding:3px 8px;';
-    inp.value=item.text;
-    inp.style.setProperty('--col',sec.col);
-    textEl.replaceWith(inp);
-    requestAnimationFrame(()=>{inp.focus();inp.select();});
-  
-    function commit(){
-      const t=inp.value.trim();
-      if(t&&t!==item.text){item.text=t;LS.set('hz_sections',sections);}
-      const sp=document.createElement('span'); sp.className='m-text'; sp.textContent=t||item.text;
-      inp.replaceWith(sp);
-      row.classList.remove('inline-editing');
-      setupDoubleTap(sp,()=>startMInlineEdit(sec,item,row));
-      const li=document.querySelector(`#listView .item-li[data-id="${item.id}"] .item-label`);
-      if(li) li.textContent=t||item.text;
-    }
-    inp.onblur=commit;
-    inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=item.text;inp.blur();}};
-  }
-  
-  // ── Cross-view sync ────────────────────────────────────
-  function syncListOrder(secKey){
-    // After matrix drag, reorder list DOM to match sections state
-    const ul=document.getElementById(`list_${secKey}`); if(!ul) return;
-    const sec=sections.find(s=>s.key===secKey); if(!sec) return;
-    sec.items.forEach(item=>{
-      const li=ul.querySelector(`.item-li[data-id="${item.id}"]`);
-      if(li) ul.appendChild(li); // moves to end in correct order
-    });
-  }
-  
-  function syncMatrixOrder(secKey){
-    // After list drag, reorder matrix DOM to match sections state
-    const items=document.getElementById(`mitems_${secKey}`); if(!items) return;
-    const sec=sections.find(s=>s.key===secKey); if(!sec) return;
-    sec.items.forEach(item=>{
-      const mi=items.querySelector(`.m-item[data-id="${item.id}"]`);
-      if(mi) items.appendChild(mi);
-    });
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Gauge updates
-  // ══════════════════════════════════════════════════════
-  function updateMatrixGauges(secKey){
-    if(curView!=='matrix') return;
-    const sec=sections.find(s=>s.key===secKey); if(!sec) return;
-    const done=sec.items.filter(it=>checked[it.id]).length,total=sec.items.length,pct=total?done/total:0;
-    const C=2*Math.PI*20;
-    const arc=document.getElementById(`arc_${secKey}`);
-    if(arc) arc.style.strokeDashoffset=C*(1-pct);
-    const gnum=document.getElementById(`gnum_${secKey}`);
-    if(gnum) gnum.textContent=`${done}/${total}`;
-    const mstat=document.getElementById(`mstat_${secKey}`);
-    if(mstat) mstat.textContent=`${done}/${total}`;
-    const fill=document.getElementById(`minifill_${secKey}`);
-    if(fill) fill.style.width=`${pct*100}%`;
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  SETTINGS VIEW
-  // ══════════════════════════════════════════════════════
-  function renderSettings(){
-    const sv=document.getElementById('settingsView'); sv.innerHTML='';
-  
-    //   //
-    if (auth.currentUser) {
-      const userBox = document.createElement('div');
-      userBox.style.cssText = "padding:12px; font-size:12px; color:var(--dim); text-align:center; background:var(--surf2); border-radius:14px; margin-bottom:16px; border:1px dashed var(--border);";
-      userBox.innerHTML = `☁️ <b style="color:var(--text)">${currentUser.email}</b> 계정으로 동기화 중`;
-      sv.appendChild(userBox);
-    }
-    const nh=document.createElement('div'); nh.className='settings-heading'; nh.textContent=L().settingAppName;
-    const nc=document.createElement('div'); nc.className='settings-card';
-    const nr=document.createElement('div'); nr.className='settings-row';
-    nr.style.gap='10px';
-    nr.innerHTML=`
-      <div class="settings-info">
-        <input id="appNameSettingInput"
-          style="width:100%;background:none;border:none;border-bottom:1.5px solid var(--gold);
-                 color:var(--text);font-family:inherit;font-size:16px;font-weight:700;
-                 padding:4px 2px;outline:none;letter-spacing:-0.3px;"
-          value="${esc(appTitle)}" placeholder="${L().appNamePlaceholder}">
-      </div>`;
-    nr.querySelector('#appNameSettingInput').onchange=function(){
-      const v=this.value.trim();
-      if(v){appTitle=v;LS.set('hz_title',appTitle);renderTitle();}
-    };
-    nr.querySelector('#appNameSettingInput').onkeydown=function(e){
-      if(e.key==='Enter'){this.blur();}
-    };
-    nc.appendChild(nr);
-    const nw=document.createElement('div'); nw.className='settings-section'; nw.append(nh,nc); sv.appendChild(nw);
-  
-    // Theme picker
-    const th=document.createElement('div'); th.className='settings-heading'; th.textContent=L().settingTheme;
-    const tc=document.createElement('div'); tc.className='settings-card';
-    const themes=[
-      {key:'dark',  get label(){return L().themes.dark;},   get sub(){return L().themeSubs.dark;}},
-      {key:'cream', get label(){return L().themes.cream;},  get sub(){return L().themeSubs.cream;}},
-      {key:'gray',  get label(){return L().themes.gray;},   get sub(){return L().themeSubs.gray;}},
-      {key:'mint',  get label(){return L().themes.mint;},   get sub(){return L().themeSubs.mint;}},
-      {key:'pink',  get label(){return L().themes.pink;},   get sub(){return L().themeSubs.pink;}},
-    ];
-    themes.forEach(t=>{
-      const row=document.createElement('div'); row.className='settings-row';
-      row.style.cursor='pointer';
-      const isActive=curTheme===t.key;
-      row.innerHTML=`
-        <div class="settings-info">
-          <div class="settings-label">${t.label}</div>
-          <div class="settings-sub">${t.sub}</div>
-        </div>
-        <div style="width:22px;height:22px;border-radius:50%;border:2px solid ${isActive?'var(--gold)':'var(--border)'};display:flex;align-items:center;justify-content:center;">
-          ${isActive?'<div style="width:10px;height:10px;border-radius:50%;background:var(--gold);"></div>':''}
-        </div>`;
-      row.onclick=()=>{applyTheme(t.key);renderSettings();};
-      tc.appendChild(row);
-    });
-    const tw=document.createElement('div'); tw.className='settings-section'; tw.append(th,tc); sv.appendChild(tw);
-  
-    // Language picker
-    const lh=document.createElement('div'); lh.className='settings-heading'; lh.textContent=L().settingLang;
-    const lc=document.createElement('div'); lc.className='settings-card';
-    const LANG_LIST=[{key:'ko',flag:'🇰🇷'},{key:'en',flag:'🇺🇸'},{key:'es',flag:'🇪🇸'}];
-    LANG_LIST.forEach(lg=>{
-      const row=document.createElement('div'); row.className='settings-row'; row.style.cursor='pointer';
-      const isActive=curLang===lg.key;
-      row.innerHTML=`
-        <div class="settings-info">
-          <div class="settings-label">${L().langs[lg.key]}</div>
-        </div>
-        <div style="width:22px;height:22px;border-radius:50%;border:2px solid ${isActive?'var(--gold)':'var(--border)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          ${isActive?'<div style="width:10px;height:10px;border-radius:50%;background:var(--gold);"></div>':''}
-        </div>`;
-      row.onclick=()=>applyLang(lg.key);
-      lc.appendChild(row);
-    });
-    const lw=document.createElement('div'); lw.className='settings-section'; lw.append(lh,lc); sv.appendChild(lw);
-  
-    // Viz toggles
-    sv.appendChild(createToggles(L().settingViz,[
-      {icon:'⭕',label:L().arcLabel,sub:L().arcSub,key:'arcGauge'},
-      {icon:'▬',label:L().barLabel,sub:L().barSub,key:'miniBar'},
-      {icon:'🏷️',label:L().gaugeLabelLabel,sub:L().gaugeLabelSub,key:'gaugeLabel'},
-    ]));
-  
-    // Section manager
-    const sh=document.createElement('div'); sh.className='settings-heading'; sh.textContent=L().settingSection;
-    const sc=document.createElement('div'); sc.className='settings-card'; sc.id='secMgrCard';
-    sections.forEach(sec=>sc.appendChild(buildSecMgrRow(sec)));
-    const asr=document.createElement('div'); asr.className='add-sec-row';
-    asr.innerHTML=`<input class="add-sec-input" id="addSecInput" placeholder="${L().addSecPlaceholder}" autocomplete="off"><button class="add-sec-btn">${L().addSecBtn}</button>`;
-    asr.querySelector('.add-sec-input').onkeydown=e=>{if(e.key==='Enter')addSection();};
-    asr.querySelector('.add-sec-btn').onclick=addSection;
-    sc.appendChild(asr);
-    const sw=document.createElement('div'); sw.className='settings-section'; sw.append(sh,sc); sv.appendChild(sw);
-  
-    // Danger
-    const dh=document.createElement('div'); dh.className='settings-heading'; dh.textContent=L().settingData;
-    const db=document.createElement('button'); db.className='danger-btn'; db.textContent=L().dangerBtn;
-    db.onclick=()=>document.getElementById('dangerOverlay').classList.add('show');
-    const dw=document.createElement('div'); dw.className='settings-section'; dw.append(dh,db); sv.appendChild(dw);
-  }
-  
-  function buildThemePicker(){
-    const THEMES=[
-      {id:'dark',  emoji:'🌙', label:'다크',         sub:'지금 기본'},
-      {id:'cream', emoji:'☀️', label:'크림 화이트',   sub:'따뜻하고 클래식'},
-      {id:'gray',  emoji:'🩶', label:'쿨 그레이',     sub:'모던하고 깔끔'},
-      {id:'mint',  emoji:'🌿', label:'민트 그린',     sub:'자연스럽고 상쾌'},
-      {id:'pink',  emoji:'🌸', label:'블러쉬 핑크',   sub:'부드럽고 따뜻'},
-    ];
-    const h=document.createElement('div'); h.className='settings-heading'; h.textContent='🎨 테마';
-    const card=document.createElement('div'); card.className='settings-card';
-  
-    THEME_LIST.forEach(t=>{
-      const row=document.createElement('div'); row.className='settings-row';
-      row.style.cursor='pointer'; row.style.transition='background .15s';
-      const isActive=theme===t.id;
-      row.innerHTML=`
-        <div class="settings-icon" style="font-size:16px">${t.emoji}</div>
-        <div class="settings-info">
-          <div class="settings-label">${t.label}</div>
-          <div class="settings-sub">${t.sub}</div>
-        </div>
-        <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${isActive?'var(--gold)':'var(--border)'};background:${isActive?'var(--gold)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" id="themeDot_${t.id}">
-          ${isActive?'<div style="width:8px;height:8px;border-radius:50%;background:var(--bg);"></div>':''}
-        </div>`;
-      row.onclick=()=>{
-        applyTheme(t.id);
-        // Update dots
-        THEMES.forEach(x=>{
-          const dot=document.getElementById('themeDot_'+x.id);
-          if(!dot) return;
-          const active=x.id===t.id;
-          dot.style.borderColor=active?'var(--gold)':'var(--border)';
-          dot.style.background=active?'var(--gold)':'transparent';
-          dot.innerHTML=active?'<div style="width:8px;height:8px;border-radius:50%;background:var(--bg);"></div>':'';
-        });
-      };
-      card.appendChild(row);
-    });
-  
-    const wrap=document.createElement('div'); wrap.className='settings-section'; wrap.append(h,card);
-    return wrap;
-  }
-  
-  function createToggles(title,rows){
-    const h=document.createElement('div'); h.className='settings-heading'; h.textContent=title;
-    const c=document.createElement('div'); c.className='settings-card';
-    rows.forEach(r=>{
-      const row=document.createElement('div'); row.className='settings-row';
-      row.innerHTML=`<div class="settings-icon">${r.icon}</div><div class="settings-info"><div class="settings-label">${r.label}</div><div class="settings-sub">${r.sub}</div></div><label class="toggle-switch"><input type="checkbox" ${settings[r.key]?'checked':''} data-key="${r.key}"><div class="toggle-track"><div class="toggle-thumb"></div></div></label>`;
-      row.querySelector('input').onchange=function(){settings[this.dataset.key]=this.checked;LS.set('hz_settings',settings);};
-      c.appendChild(row);
-    });
-    const w=document.createElement('div'); w.className='settings-section'; w.append(h,c); return w;
-  }
-  
-  function buildSecMgrRow(sec){
-    const row=document.createElement('div'); row.className='sec-mgr-item'; row.dataset.key=sec.key;
-    row.innerHTML=`<div class="sec-mgr-color" style="background:${sec.col}" data-key="${sec.key}" title="색상"></div><div class="sec-mgr-emoji" data-key="${sec.key}">${sec.emoji}</div><input class="sec-mgr-name" value="${esc(sec.name)}" data-key="${sec.key}"><button class="sec-mgr-del" data-key="${sec.key}">−</button>`;
-    row.querySelector('.sec-mgr-color').onclick=()=>openColorPicker(sec.key);
-    row.querySelector('.sec-mgr-emoji').onclick=()=>openEmojiPicker(sec.key);
-    row.querySelector('.sec-mgr-name').onchange=function(){const s=sections.find(x=>x.key===this.dataset.key);if(s){s.name=this.value.trim()||s.name;LS.set('hz_sections',sections);}};
-    row.querySelector('.sec-mgr-del').onclick=()=>deleteSection(sec.key);
-    return row;
-  }
-  
-  function addSection(){
-    const inp=document.getElementById('addSecInput');
-    const name=inp.value.trim(); if(!name) return;
-    const newSec={key:uid('sec'),name,emoji:'⭐',col:PALETTE[sections.length%PALETTE.length],items:[]};
-    sections.push(newSec); LS.set('hz_sections',sections);
-    document.getElementById('secMgrCard').insertBefore(buildSecMgrRow(newSec),document.querySelector('.add-sec-row'));
-    inp.value=''; showToast(L().toastSecAdded(name));
-  }
-  
-  function deleteSection(key){
-    if(sections.length<=1){showToast(L().toastMinSec);return;}
-    const sec=sections.find(s=>s.key===key);
-    sec.items.forEach(it=>{delete checked[it.id];delete checkedTimes[it.id];});
-    sections=sections.filter(s=>s.key!==key);
-    LS.set('hz_sections',sections);LS.set('hz_checked',checked);LS.set('hz_ctimes',checkedTimes);
-    document.querySelector(`.sec-mgr-item[data-key="${key}"]`)?.remove();
-    showToast(L().toastSecDeleted);
-  }
-  
-  // Color picker
-  let colorTargetKey=null;
-  function openColorPicker(k){
-    colorTargetKey=k;
-    const sec=sections.find(s=>s.key===k);
-    const pal=document.getElementById('colorPalette'); pal.innerHTML='';
-    PALETTE.forEach(c=>{
-      const sw=document.createElement('div'); sw.className='cp-swatch'+(sec.col===c?' selected':''); sw.style.background=c;
-      sw.onclick=()=>{pal.querySelectorAll('.cp-swatch').forEach(x=>x.classList.remove('selected'));sw.classList.add('selected');document.getElementById('colorHexInput').value=c;};
-      pal.appendChild(sw);
-    });
-    document.getElementById('colorHexInput').value=sec.col;
-    document.getElementById('colorTitle').textContent=L().colorTitle;
-  document.getElementById('colorDirectLabel').textContent=L().colorDirectLabel;
-  document.getElementById('colorCancel').textContent=L().cancelBtn;
-  document.getElementById('colorOk').textContent=L().colorOk;
-  document.getElementById('colorOverlay').classList.add('show');
-  }
-  document.getElementById('colorCancel').onclick=()=>document.getElementById('colorOverlay').classList.remove('show');
-  document.getElementById('colorOk').onclick=()=>{
-    const hex=document.getElementById('colorHexInput').value.trim();
-    if(!hex.match(/^#[0-9a-fA-F]{3,6}$/)){showToast(L().toastColorErr);return;}
-    const sec=sections.find(s=>s.key===colorTargetKey);
-    if(sec){sec.col=hex;LS.set('hz_sections',sections);}
-    document.querySelector(`.sec-mgr-color[data-key="${colorTargetKey}"]`)?.style.setProperty('background',hex);
-    document.getElementById('colorOverlay').classList.remove('show');
-    showToast(L().toastColorChanged);
-  };
-  
-  // Emoji picker
-  let emojiTargetKey=null;
-  function openEmojiPicker(k){
-    emojiTargetKey=k;
-    const grid=document.getElementById('emojiGrid'); grid.innerHTML='';
-    EMOJIS.forEach(em=>{
-      const btn=document.createElement('div'); btn.className='emoji-btn'; btn.textContent=em;
-      btn.onclick=()=>{
-        const sec=sections.find(s=>s.key===emojiTargetKey);
-        if(sec){sec.emoji=em;LS.set('hz_sections',sections);}
-        // Update settings row emoji
-        const mgr=document.querySelector(`.sec-mgr-emoji[data-key="${emojiTargetKey}"]`);
-        if(mgr) mgr.textContent=em;
-        // Update list view sec-head emoji
-        const head=document.querySelector(`#listView .sec-card[data-key="${emojiTargetKey}"] .sec-emoji`);
-        if(head) head.textContent=em;
-        document.getElementById('emojiOverlay').classList.remove('show');
-        showToast(L().toastEmojiChanged);
-      };
-      grid.appendChild(btn);
-    });
-    document.getElementById('emojiTitle').textContent=L().emojiTitle;
-  document.getElementById('emojiCancel').textContent=L().cancelBtn;
-  document.getElementById('emojiOverlay').classList.add('show');
-  }
-  document.getElementById('emojiCancel').onclick=()=>document.getElementById('emojiOverlay').classList.remove('show');
-  
-  // Danger
-  document.getElementById('dangerCancel').onclick=()=>document.getElementById('dangerOverlay').classList.remove('show');
-  document.getElementById('dangerOk').onclick=()=>{
-    sections=JSON.parse(JSON.stringify(DEFAULTS));
-    checked={};checkedTimes={};streak=0;lastReset=null;appTitle='Hazel Check';settings={arcGauge:true,miniBar:true,gaugeLabel:true};
-    ['hz_sections','hz_checked','hz_ctimes','hz_streak','hz_lastReset','hz_title','hz_settings','hz_theme'].forEach(k=>localStorage.removeItem(k));
-    applyTheme('dark');
-    document.getElementById('dangerOverlay').classList.remove('show');
-    renderTitle(); document.getElementById('streakNum').textContent=0;
-    setView('list'); showToast(L().toastReset2);
-  };
-  
-  // ══════════════════════════════════════════════════════
-  //  Edit / Add / Delete (list)
-  // ══════════════════════════════════════════════════════
-  function toggleEdit(k){editKey=editKey===k?null:k;render();if(editKey===k)setTimeout(()=>document.getElementById(`addinput_${k}`)?.focus(),80);}
-  
-  function doAdd(secKey){
-    const inp=document.getElementById(`addinput_${secKey}`);
-    const text=inp?.value.trim(); if(!text){inp?.focus();return;}
-    const sec=sections.find(s=>s.key===secKey);
-    const newId=uid(secKey); sec.items.push({id:newId,text}); LS.set('hz_sections',sections);
-    const ul=document.getElementById(`list_${secKey}`);
-    if(ul){
-      const li=buildItem(sec,{id:newId,text},true); ul.appendChild(li);
-      // Register drag on new item
-      const card=document.querySelector(`.sec-card[data-key="${secKey}"]`);
-      if(card&&card._attachDrag){
-        const h=li.querySelector('.drag-handle'); if(h) card._attachDrag(h);
-      }
-    }
-    inp.value=''; inp.focus(); updateStat(secKey); updateHeader();
-  }
-  
-  function doDelete(secKey,itemId){
-    const sec=sections.find(s=>s.key===secKey);
-    sec.items=sec.items.filter(it=>it.id!==itemId);
-    delete checked[itemId];delete checkedTimes[itemId];
-    LS.set('hz_sections',sections);LS.set('hz_checked',checked);LS.set('hz_ctimes',checkedTimes);
-    document.querySelector(`.item-li[data-id="${itemId}"]`)?.remove();
-    updateStat(secKey); updateHeader();
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Header / Stats
-  // ══════════════════════════════════════════════════════
-  function updateHeader(){
-    const all=allItems(),total=all.length,done=all.filter(it=>checked[it.id]).length;
-    document.getElementById('progFill').style.width=`${total?(done/total)*100:0}%`;
-    document.getElementById('progLabel').textContent=L().complete(done,total);
-  }
-  
-  function updateStat(secKey){
-    const sec=sections.find(s=>s.key===secKey); if(!sec) return;
-    const done=sec.items.filter(it=>checked[it.id]).length;
-    const el=document.getElementById(`stat_${secKey}`);
-    const card=document.querySelector(`.sec-card[data-key="${secKey}"]`);
-    if(el) el.textContent=`${done}/${sec.items.length}`;
-    if(card) card.classList.toggle('all-done',sec.items.length>0&&done===sec.items.length);
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Discord — morning: #해야할일 / evening: #완료한일
-  // ══════════════════════════════════════════════════════
-  let discordMsg='';
-  
-  document.getElementById('discordBtn').onclick=()=>{
-    const now=new Date();
-    const tag=`#${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-    const totalDone=allItems().filter(it=>checked[it.id]).length;
-    const isTodo=totalDone===0;
-    const lines=[];
-  
-    if(isTodo){
-      // ── 아침: 아직 아무것도 안 했을 때 ──
-      lines.push(`${tag} ${L().discordTodoHash}\n`);
-      sections.forEach(sec=>{
-        if(!sec.items.length) return;
-        lines.push(`${sec.emoji} ${sec.name}`);
-        sec.items.forEach(it=>lines.push(`• ${it.text}`));
-        lines.push('');
-      });
-    } else {
-      // ── 저녁: 완료한 것들만 ──
-      lines.push(`${tag} ${L().discordDoneHash}\n`);
-      sections.forEach(sec=>{
-        const done=sec.items.filter(it=>checked[it.id]);
-        if(!done.length) return;
-        lines.push(`${sec.emoji} ${sec.name}`);
-        done.forEach(it=>lines.push(`[V] ${it.text}`));
-        lines.push('');
-      });
-    }
-  
-    discordMsg=lines.join('\n').trim();
-    document.getElementById('sheetPreview').textContent=discordMsg;
-    document.getElementById('sheetTag').textContent=isTodo?L().tagTodo:L().tagDone;
-    document.getElementById('sheetTag').className='sheet-tag '+(isTodo?'tag-todo':'tag-done');
-    document.getElementById('sheetTitle').textContent=isTodo?'오늘 할 일 🌅':'오늘 하루 인증 🌙';
-    document.getElementById('discordOverlay').classList.add('show');
-  };
-  
-  document.getElementById('discordCancel').onclick=()=>document.getElementById('discordOverlay').classList.remove('show');
-  document.getElementById('discordOverlay').onclick=e=>{if(e.target===document.getElementById('discordOverlay'))document.getElementById('discordOverlay').classList.remove('show');};
-  document.getElementById('discordCopy').onclick=async()=>{
-    try{await navigator.clipboard.writeText(discordMsg);}
-    catch{const ta=document.createElement('textarea');ta.value=discordMsg;ta.style.cssText='position:fixed;opacity:0;';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
-    document.getElementById('discordOverlay').classList.remove('show');
-    showToast(L().toastCopied);
-  };
-  
-  // ══════════════════════════════════════════════════════
-  //  Reset + Streak
-  // ══════════════════════════════════════════════════════
-  document.getElementById('resetBtn').onclick=()=>document.getElementById('resetOverlay').classList.add('show');
-  document.getElementById('resetCancel').onclick=()=>document.getElementById('resetOverlay').classList.remove('show');
-  document.getElementById('resetOverlay').onclick=e=>{if(e.target===document.getElementById('resetOverlay'))document.getElementById('resetOverlay').classList.remove('show');};
-  document.getElementById('resetOk').onclick=()=>{
-    const today=todayStr();
-    if(!lastReset) streak=1;
-    else{const d=dayDiff(lastReset,today);if(d===0){}else if(d===1)streak++;else streak=1;}
-    lastReset=today; LS.set('hz_streak',streak); LS.set('hz_lastReset',lastReset);
-    document.getElementById('streakNum').textContent=streak;
-    const pill=document.getElementById('streakPill');
-    pill.classList.add('pulse'); pill.addEventListener('animationend',()=>pill.classList.remove('pulse'),{once:true});
-    checked={};checkedTimes={};wasAllDone=false;
-    LS.set('hz_checked',checked);LS.set('hz_ctimes',checkedTimes); saveToCloud();
-    document.getElementById('resetOverlay').classList.remove('show');
-    editKey=null; render();
-    if(curView==='matrix') renderMatrix();
-    showToast(L().toastReset(streak));
-  };
-  
-  // ══════════════════════════════════════════════════════
-  //  Confetti
-  // ══════════════════════════════════════════════════════
-  function fireConfetti(){
-    const cv=document.getElementById('confettiCanvas'),ctx=cv.getContext('2d');
-    cv.width=window.innerWidth;cv.height=window.innerHeight;
-    const cols=['#D4A853','#C4898B','#7BAE8C','#7B9FC4','#EEE8DC','#F0C060'];
-    const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-10,r:Math.random()*5+3,color:cols[~~(Math.random()*cols.length)],vx:(Math.random()-.5)*3,vy:Math.random()*3+2,rot:Math.random()*360,rotV:(Math.random()-.5)*6,shape:Math.random()>.5?'rect':'circle'}));
-    let f=0;
-    (function draw(){ctx.clearRect(0,0,cv.width,cv.height);ps.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.color;p.shape==='rect'?ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r):(ctx.beginPath(),ctx.arc(0,0,p.r,0,Math.PI*2),ctx.fill());ctx.restore();p.x+=p.vx;p.y+=p.vy;p.rot+=p.rotV;p.vy+=0.06;});if(++f<150)requestAnimationFrame(draw);else ctx.clearRect(0,0,cv.width,cv.height);})();
-    showToast(L().toastAllDone);
-  }
-  
-  // ══════════════════════════════════════════════════════
-  //  Toast / Date / Streak init
-  // ══════════════════════════════════════════════════════
-  function applyTheme(t){
-    curTheme=t; LS.set('hz_theme',t);
-    // CSS data-theme attribute (for [data-theme] CSS rules)
-    document.documentElement.dataset.theme = t==='dark' ? '' : t;
-    // Also apply inline CSS vars directly (fallback for any env)
-    const T=THEMES[t]||THEMES.dark;
-    const r=document.documentElement.style;
-    Object.entries({
-      '--bg':T.bg,'--surface':T.surface,'--surf2':T.surf2,'--surf3':T.surf3,
-      '--text':T.text,'--dim':T.dim,'--faint':T.faint,'--border':T.border
-    }).forEach(([k,v])=>r.setProperty(k,v));
-  }
-  
-  let toastTimer=null;
-  function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2800);}
-  
-  function initDate(){const now=new Date();const _days=L().days;
-    document.getElementById('dateLbl').textContent=L().dateFormat(now.getMonth()+1,now.getDate(),_days[now.getDay()]);}
-  
-  function initStreak(){
-    if(lastReset){const d=dayDiff(lastReset,todayStr());if(d>1){streak=0;LS.set('hz_streak',streak);}}
-    document.getElementById('streakNum').textContent=streak;
-  }
-  
-  ['discordOverlay','resetOverlay','colorOverlay','emojiOverlay','dangerOverlay'].forEach(id=>{
-    const el=document.getElementById(id);
-    el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show');});
+    showSyncStatus('☁ 동기화됨');
   });
-  
-  // ══════════════════════════════════════════════════════
-  //  Init
-  // ══════════════════════════════════════════════════════
-  initDate(); initStreak(); renderTitle(); applyTheme(curTheme); applyLang(curLang); setView('list');
-  </script>
-  
-  </body>
-  </html>
+
+  // ② checked 리스너 — 체크 상태만 감지 (DOM 부분 업데이트)
+  const unsubChecked = onValue(ref(db, `users/${uid}/checked`), snap => {
+    const cloud = snap.val() || {};
+    if (JSON.stringify(cloud) === JSON.stringify(checked)) return;
+    checked = cloud;
+    LS.set('hz_checked', checked);
+    applyCheckToDOM();
+    updateHeader();
+    sections.forEach(s => updateStat(s.key));
+    updateAllMatrixGauges();
+  });
+
+  // ③ checkedTimes 리스너
+  const unsubTimes = onValue(ref(db, `users/${uid}/checkedTimes`), snap => {
+    const cloud = snap.val() || {};
+    if (JSON.stringify(cloud) === JSON.stringify(checkedTimes)) return;
+    checkedTimes = cloud;
+    LS.set('hz_ctimes', checkedTimes);
+    // 시간 표시 업데이트
+    allItems().forEach(item => {
+      const te = document.getElementById(`time_${item.id}`);
+      if (te) te.textContent = checked[item.id] && checkedTimes[item.id] ? fmtTime(checkedTimes[item.id]) : '';
+    });
+  });
+
+  // ④ 메타 데이터 리스너 (streak, appTitle, settings, theme, lang)
+  const unsubMeta = onValue(ref(db, `users/${uid}/streak`), snap => {
+    if (!snap.exists()) return;
+    const v = snap.val();
+    if (v === streak) return;
+    streak = v; LS.set('hz_streak', streak);
+    document.getElementById('streakNum').textContent = streak;
+  });
+
+  const unsubTitle = onValue(ref(db, `users/${uid}/appTitle`), snap => {
+    if (!snap.exists()) return;
+    const v = snap.val();
+    if (v === appTitle) return;
+    appTitle = v; LS.set('hz_title', appTitle);
+    renderTitle();
+  });
+
+  const unsubTheme = onValue(ref(db, `users/${uid}/curTheme`), snap => {
+    if (!snap.exists()) return;
+    const v = snap.val();
+    if (v === curTheme) return;
+    applyTheme(v);
+  });
+
+  const unsubLang = onValue(ref(db, `users/${uid}/curLang`), snap => {
+    if (!snap.exists()) return;
+    const v = snap.val();
+    if (v === curLang) return;
+    applyLang(v);
+  });
+
+  const unsubSettings = onValue(ref(db, `users/${uid}/settings`), snap => {
+    if (!snap.exists()) return;
+    const v = snap.val();
+    if (JSON.stringify(v) === JSON.stringify(settings)) return;
+    settings = v; LS.set('hz_settings', settings);
+  });
+
+  unsubscribers.push(unsubSections, unsubChecked, unsubTimes, unsubMeta, unsubTitle, unsubTheme, unsubLang, unsubSettings);
+}
+
+function stopRealtimeSync() {
+  unsubscribers.forEach(fn => fn());
+  unsubscribers.length = 0;
+}
+
+// 체크 상태를 DOM에만 반영 (re-render 없이)
+function applyCheckToDOM() {
+  allItems().forEach(item => {
+    const li = document.querySelector(`#listView .item-li[data-id="${item.id}"]`);
+    if (li) {
+      const isDone = !!checked[item.id];
+      li.classList.toggle('done', isDone);
+      const te = li.querySelector('.item-time');
+      if (te) te.textContent = isDone && checkedTimes[item.id] ? fmtTime(checkedTimes[item.id]) : '';
+    }
+    const mi = document.querySelector(`#matrixView .m-item[data-id="${item.id}"]`);
+    if (mi) mi.classList.toggle('done', !!checked[item.id]);
+  });
+}
+
+function updateAllMatrixGauges() {
+  if (curView !== 'matrix') return;
+  sections.forEach(sec => updateMatrixGauges(sec.key));
+}
+
+// Auth
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  const btn = document.getElementById('authBtn');
+  if (user) {
+    if (btn) { btn.textContent = '로그아웃'; btn.style.color = 'var(--gold)'; }
+    startRealtimeSync();
+  } else {
+    if (btn) { btn.textContent = '🔑 Google 로그인'; btn.style.color = 'var(--dim)'; }
+    stopRealtimeSync();
+  }
+});
+
+window.handleAuth = async function() {
+  if (currentUser) {
+    stopRealtimeSync();
+    await signOut(auth);
+    showToast('로그아웃됐어.');
+  } else {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      showToast('로그인 완료!');
+    } catch(e) { showToast('로그인 실패: ' + e.message); }
+  }
+};
+
+// ══════════════════════════════════════════════════════
+//  Constants
+// ══════════════════════════════════════════════════════
+const PALETTE=['#D4A853','#C4898B','#7BAE8C','#7B9FC4','#9B8DC4','#C4A87B','#7BC4B4','#C47B9B','#A8C47B','#7B9BC4','#D48053','#8CC47B'];
+const EMOJIS=['💼','📚','🌿','🔥','⭐','🎯','💡','🏃','🎨','📝','🎵','🌸','🍀','💪','🧘','📖','✏️','🌙','☀️','🌈','🦋','🌺','🍎','🎉'];
+const DEFAULTS=[
+  {key:'work',    name:'Work',    emoji:'💼', col:'#D4A853', items:[]},
+  {key:'growth',  name:'1%',      emoji:'📈', col:'#7BAE8C', items:[]},
+  {key:'routine', name:'일상·루틴',emoji:'🌿', col:'#C4898B', items:[]},
+  {key:'challenge',name:'기타',   emoji:'🔥', col:'#7B9FC4', items:[]}
+];
+
+// ══════════════════════════════════════════════════════
+//  Storage
+// ══════════════════════════════════════════════════════
+const LS={
+  get:(k,fb)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):JSON.parse(JSON.stringify(fb));}catch{return JSON.parse(JSON.stringify(fb));}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+};
+
+// ══════════════════════════════════════════════════════
+//  State
+// ══════════════════════════════════════════════════════
+let sections    =normalizeSections(LS.get('hz_sections',DEFAULTS));
+let checked     =LS.get('hz_checked',{});
+let checkedTimes=LS.get('hz_ctimes',{});
+let streak      =LS.get('hz_streak',0);
+let lastReset   =LS.get('hz_lastReset',null);
+let appTitle    =LS.get('hz_title','Hazel Check');
+let settings    =LS.get('hz_settings',{arcGauge:true,miniBar:true,gaugeLabel:true});
+let curTheme    =LS.get('hz_theme','dark');
+let curLang     =LS.get('hz_lang','ko');
+let editKey     =null;
+let curView     ='list';
+let editingName =false;
+let wasAllDone  =false;
+
+// ══════════════════════════════════════════════════════
+//  Util
+// ══════════════════════════════════════════════════════
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const dayDiff=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
+const allItems=()=>sections.flatMap(s=>s.items);
+const uid=p=>`${p}_${Date.now()}_${Math.random().toString(36).slice(2,5)}`;
+
+// ══════════════════════════════════════════════════════
+//  Translations
+// ══════════════════════════════════════════════════════
+const LANG={
+  ko:{editBtn:'✏️',doneBtn:'✓',quickAdd:'항목 추가 / 편집',addPlaceholder:'새 항목 입력…',addBtn:'추가',mAddTrig:'+ 항목 추가',mAddPlaceholder:'새 항목…',discordBtn:'📋 Discord 인증',resetBtn:'🌙 마무리',complete:(d,t)=>`${d} / ${t} 완료`,streakUnit:'일째',discordTodoHash:'#해야할일',discordDoneHash:'#완료한일',tagTodo:'#해야할일',tagDone:'#완료한일',copyBtn:'📋 복사하기',cancelBtn:'취소',resetTitle:'오늘 하루 수고했어 🌙',resetDesc:'체크 내역만 초기화할게.\n항목 목록은 그대로 남아있어.',resetOk:'리셋할게',toastCopied:'복사 완료! Discord에 붙여넣기 해줘 🎉',toastReset:(n)=>`🔥 ${n}일째 달성! 오늘도 수고했어`,toastAllDone:'🎉 전부 완료! 오늘 진짜 잘했어!',toastColorChanged:'색상 변경됐어!',toastEmojiChanged:'이모지 변경됐어!',toastSecAdded:(n)=>`섹션 "${n}" 추가됐어!`,toastSecDeleted:'섹션 삭제됐어.',toastMinSec:'섹션이 하나 이상 있어야 해!',toastColorErr:'올바른 색상 코드를 입력해줘 (예: #D4A853)',toastReset2:'전체 초기화 완료!',settingAppName:'앱 이름',settingTheme:'테마',settingViz:'🎨 시각화',settingSection:'섹션 관리',settingData:'데이터',settingLang:'언어',arcLabel:'원형 게이지',arcSub:'매트릭스 뷰 상단 섹션별 원형 진행률',barLabel:'카드 미니 진행 바',barSub:'각 사분면 헤더 아래 얇은 색상 바',gaugeLabelLabel:'게이지 이름 표시',gaugeLabelSub:'원형 게이지 아래 섹션 이름',addSecPlaceholder:'새 섹션 이름…',addSecBtn:'+ 추가',dangerBtn:'⚠️ 전체 초기화',dangerOk:'전부 초기화',colorTitle:'섹션 색상 변경',colorDirectLabel:'직접 입력',colorOk:'적용',emojiTitle:'이모지 변경',appNamePlaceholder:'앱 이름 입력…',days:['일','월','화','수','목','금','토'],dateFormat:(m,d,day)=>`${m}월 ${d}일 ${day}요일`,ampm:(h)=>h>=12?'오후':'오전',themes:{dark:'🌙 다크',cream:'☀️ 크림 화이트',gray:'🩶 쿨 그레이',mint:'🌿 민트 그린',pink:'🌸 블러쉬 핑크'},themeSubs:{dark:'지금 기본',cream:'따뜻하고 클래식',gray:'모던하고 깔끔',mint:'자연스럽고 상쾌',pink:'부드럽고 감성적'},langs:{ko:'🇰🇷 한국어',en:'🇺🇸 English',es:'🇪🇸 Español'}},
+  en:{editBtn:'✏️',doneBtn:'✓',quickAdd:'Add / Edit items',addPlaceholder:'New item…',addBtn:'Add',mAddTrig:'+ Add item',mAddPlaceholder:'New item…',discordBtn:'📋 Discord Post',resetBtn:'🌙 End Day',complete:(d,t)=>`${d} / ${t} done`,streakUnit:' day streak',discordTodoHash:'#todo',discordDoneHash:'#done',tagTodo:'#todo',tagDone:'#done',copyBtn:'📋 Copy',cancelBtn:'Cancel',resetTitle:'Great work today 🌙',resetDesc:"This will clear today's checks.\nYour items will stay.",resetOk:'Reset',toastCopied:'Copied! Paste into Discord 🎉',toastReset:(n)=>`🔥 ${n}-day streak! Keep it up!`,toastAllDone:'🎉 All done! Amazing work today!',toastColorChanged:'Color updated!',toastEmojiChanged:'Emoji updated!',toastSecAdded:(n)=>`Section "${n}" added!`,toastSecDeleted:'Section deleted.',toastMinSec:'You need at least one section!',toastColorErr:'Enter a valid hex code (e.g. #D4A853)',toastReset2:'All data cleared!',settingAppName:'App Name',settingTheme:'Theme',settingViz:'🎨 Display',settingSection:'Sections',settingData:'Data',settingLang:'Language',arcLabel:'Arc Gauges',arcSub:'Section progress rings in matrix view',barLabel:'Mini Progress Bar',barSub:'Thin bar below each quadrant header',gaugeLabelLabel:'Show gauge labels',gaugeLabelSub:'Section names under arc gauges',addSecPlaceholder:'New section name…',addSecBtn:'+ Add',dangerBtn:'⚠️ Reset All Data',dangerOk:'Reset Everything',colorTitle:'Change Section Color',colorDirectLabel:'Custom hex',colorOk:'Apply',emojiTitle:'Change Emoji',appNamePlaceholder:'Enter app name…',days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],dateFormat:(m,d,day)=>`${day}, ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} ${d}`,ampm:(h)=>h>=12?'PM':'AM',themes:{dark:'🌙 Dark',cream:'☀️ Cream White',gray:'🩶 Cool Gray',mint:'🌿 Mint Green',pink:'🌸 Blush Pink'},themeSubs:{dark:'Default',cream:'Warm & classic',gray:'Modern & clean',mint:'Fresh & natural',pink:'Soft & cozy'},langs:{ko:'🇰🇷 한국어',en:'🇺🇸 English',es:'🇪🇸 Español'}},
+  es:{editBtn:'✏️',doneBtn:'✓',quickAdd:'Agregar / Editar',addPlaceholder:'Nuevo elemento…',addBtn:'Agregar',mAddTrig:'+ Agregar',mAddPlaceholder:'Nuevo elemento…',discordBtn:'📋 Publicar Discord',resetBtn:'🌙 Terminar día',complete:(d,t)=>`${d} / ${t} completado`,streakUnit:' días seguidos',discordTodoHash:'#porhacer',discordDoneHash:'#completado',tagTodo:'#porhacer',tagDone:'#completado',copyBtn:'📋 Copiar',cancelBtn:'Cancelar',resetTitle:'¡Buen trabajo hoy! 🌙',resetDesc:'Se borrarán los checks de hoy.\nLos elementos quedan guardados.',resetOk:'Reiniciar',toastCopied:'¡Copiado! Pégalo en Discord 🎉',toastReset:(n)=>`🔥 ¡${n} días seguidos!`,toastAllDone:'🎉 ¡Todo completado!',toastColorChanged:'¡Color actualizado!',toastEmojiChanged:'¡Emoji actualizado!',toastSecAdded:(n)=>`¡Sección "${n}" agregada!`,toastSecDeleted:'Sección eliminada.',toastMinSec:'¡Necesitas al menos una sección!',toastColorErr:'Ingresa un código hex válido',toastReset2:'¡Todos los datos eliminados!',settingAppName:'Nombre de la app',settingTheme:'Tema',settingViz:'🎨 Pantalla',settingSection:'Secciones',settingData:'Datos',settingLang:'Idioma',arcLabel:'Indicadores circulares',arcSub:'Anillos de progreso en vista de matriz',barLabel:'Barra mini de progreso',barSub:'Barra delgada bajo el encabezado',gaugeLabelLabel:'Mostrar etiquetas',gaugeLabelSub:'Nombres de sección bajo los indicadores',addSecPlaceholder:'Nombre de sección…',addSecBtn:'+ Agregar',dangerBtn:'⚠️ Borrar todo',dangerOk:'Borrar todo',colorTitle:'Cambiar color',colorDirectLabel:'Código hex',colorOk:'Aplicar',emojiTitle:'Cambiar emoji',appNamePlaceholder:'Nombre de la app…',days:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],dateFormat:(m,d,day)=>`${day} ${d} de ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][m-1]}`,ampm:(h)=>h>=12?'PM':'AM',themes:{dark:'🌙 Oscuro',cream:'☀️ Crema',gray:'🩶 Gris frío',mint:'🌿 Verde menta',pink:'🌸 Rosa suave'},themeSubs:{dark:'Por defecto',cream:'Cálido y clásico',gray:'Moderno y limpio',mint:'Fresco y natural',pink:'Suave y acogedor'},langs:{ko:'🇰🇷 한국어',en:'🇺🇸 English',es:'🇪🇸 Español'}},
+};
+const L=()=>LANG[curLang]||LANG.ko;
+const fmtTime=ts=>{const d=new Date(ts),h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');return `${L().ampm(h)} ${h%12||12}:${m}`;};
+
+function renderTitle(){
+  const el=document.getElementById('appNameDisplay');
+  const parts=appTitle.split(' ');
+  if(parts.length>=2){const last=parts.pop();el.innerHTML=`${esc(parts.join(' '))} <em>${esc(last)}</em>`;}
+  else el.innerHTML=esc(appTitle);
+  document.title=appTitle;
+}
+
+const THEMES={
+  dark: {bg:'#12100B',surface:'#1B1813',surf2:'#232018',surf3:'#2A2620',text:'#EEE8DC',dim:'#9A8E7E',faint:'#5A5248',border:'#2B2720'},
+  cream:{bg:'#FDFAF4',surface:'#FFFFFF',surf2:'#F0EDE6',surf3:'#E8E4DC',text:'#2C2420',dim:'#9A9690',faint:'#C0BCB6',border:'#E0DCD4'},
+  gray: {bg:'#F4F4F6',surface:'#FFFFFF',surf2:'#E8E8EE',surf3:'#DCDDE2',text:'#1A1A2E',dim:'#8888A0',faint:'#C0C0C8',border:'#DCDDE2'},
+  mint: {bg:'#F0F7F4',surface:'#FFFFFF',surf2:'#DEF0E8',surf3:'#D0E8E0',text:'#1A2E28',dim:'#6A9080',faint:'#A0C0B8',border:'#C8E0D4'},
+  pink: {bg:'#FDF4F4',surface:'#FFFFFF',surf2:'#F0DEDE',surf3:'#E8D0D0',text:'#2E1A1A',dim:'#907070',faint:'#C0A0A0',border:'#EAD4D4'},
+};
+
+function applyTheme(t){
+  curTheme=t; LS.set('hz_theme',t);
+  document.documentElement.dataset.theme=t==='dark'?'':t;
+  const T=THEMES[t]||THEMES.dark;
+  const r=document.documentElement.style;
+  Object.entries({'--bg':T.bg,'--surface':T.surface,'--surf2':T.surf2,'--surf3':T.surf3,'--text':T.text,'--dim':T.dim,'--faint':T.faint,'--border':T.border}).forEach(([k,v])=>r.setProperty(k,v));
+}
+
+function applyLang(l){
+  curLang=l; LS.set('hz_lang',l);
+  const db2=document.getElementById('discordBtn'); if(db2) db2.textContent=L().discordBtn;
+  const rb=document.getElementById('resetBtn'); if(rb) rb.textContent=L().resetBtn;
+  const su=document.getElementById('streakUnit'); if(su) su.textContent=L().streakUnit;
+  initDate();
+  if(curView==='list') render();
+  else if(curView==='matrix') renderMatrix();
+  else if(curView==='settings') renderSettings();
+}
+
+// Gear
+const gear=document.getElementById('gearBtn');
+gear.addEventListener('touchend',e=>{e.preventDefault();setView('settings');});
+gear.addEventListener('click',e=>{if(!('ontouchstart' in window))setView('settings');});
+
+document.getElementById('btnList').onclick=()=>setView('list');
+document.getElementById('btnMatrix').onclick=()=>setView('matrix');
+
+function setView(v){
+  curView=v;
+  ['list','matrix','settings'].forEach(n=>{
+    const el=document.getElementById(n+'View');
+    const visible=n===v;
+    el.style.display=visible?'flex':'none';
+    if(visible){el.style.flexDirection='column';el.style.gap=n==='settings'?'12px':'10px';el.style.padding=n==='list'?'10px 16px':'10px 14px';}
+  });
+  document.getElementById('btnList').classList.toggle('active',v==='list');
+  document.getElementById('btnMatrix').classList.toggle('active',v==='matrix');
+  document.getElementById('footerBar').style.display=v==='settings'?'none':'flex';
+  if(v==='list') render();
+  if(v==='matrix') renderMatrix();
+  if(v==='settings') renderSettings();
+}
+
+// ══════════════════════════════════════════════════════
+//  DRAG ENGINE
+// ══════════════════════════════════════════════════════
+let activeDrag=null;
+
+function initDrag(container,getItemEls,onCommit){
+  function attach(handle){
+    handle.addEventListener('touchstart',e=>{
+      e.preventDefault();e.stopPropagation();
+      if(activeDrag) return;
+      const item=handle.closest('[data-id]'); if(!item) return;
+      const touch=e.touches[0];
+      const itemH=item.offsetHeight;
+      const dur=container.dataset.dragDur||'0.18s';
+      const origEls=getItemEls();
+      const origIdx=origEls.indexOf(item);
+      item.style.transition='box-shadow .15s';item.style.zIndex='10';item.style.position='relative';item.classList.add('is-dragging');
+      origEls.forEach(el=>{if(el!==item){el.style.transition=`transform ${dur} cubic-bezier(.25,.8,.25,1)`;el.style.transform='';}});
+      activeDrag={item,container,getItemEls,onCommit,itemH,dur,origIdx,insertIdx:origIdx,startY:touch.clientY,currentY:0};
+      document.addEventListener('touchmove',onDragMove,{passive:false});
+      document.addEventListener('touchend',onDragEnd,{once:true});
+    },{passive:false});
+  }
+  container.querySelectorAll('.drag-handle,.m-drag').forEach(attach);
+  return attach;
+}
+
+function onDragMove(e){
+  if(!activeDrag) return; e.preventDefault();
+  const{item,getItemEls,itemH,origIdx}=activeDrag;
+  const dy=e.touches[0].clientY-activeDrag.startY;
+  activeDrag.currentY=dy;
+  item.style.transform=`translateY(${dy}px)`;
+  const els=getItemEls(); let newInsert=origIdx;
+  els.forEach((el,i)=>{
+    if(el===item) return;
+    const nudged=(i>origIdx&&newInsert>=i)?-itemH:(i<origIdx&&newInsert<=i)?itemH:0;
+    const elCenter=el.offsetTop+nudged+el.offsetHeight/2;
+    const dragCenter=item.offsetTop+dy+itemH/2;
+    if(dy>0&&dragCenter>elCenter&&i>origIdx) newInsert=i;
+    if(dy<0&&dragCenter<elCenter&&i<origIdx) newInsert=i;
+  });
+  activeDrag.insertIdx=newInsert;
+  els.forEach((el,i)=>{
+    if(el===item) return;
+    let nudge=0;
+    if(newInsert>origIdx&&i>origIdx&&i<=newInsert) nudge=-itemH;
+    if(newInsert<origIdx&&i<origIdx&&i>=newInsert) nudge=itemH;
+    el.style.transform=nudge?`translateY(${nudge}px)`:'';
+  });
+}
+
+function onDragEnd(){
+  if(!activeDrag) return;
+  document.removeEventListener('touchmove',onDragMove);
+  const{item,container,getItemEls,onCommit,origIdx,insertIdx}=activeDrag;
+  item.style.transform='';item.style.transition='';item.style.zIndex='';item.style.position='';item.classList.remove('is-dragging');
+  getItemEls().forEach(el=>{el.style.transition='';el.style.transform='';});
+  if(insertIdx!==origIdx){
+    const els=getItemEls();const r=els[insertIdx];
+    if(r){if(insertIdx>origIdx)container.insertBefore(item,r.nextSibling||null);else container.insertBefore(item,r);}
+  }
+  const newOrder=getItemEls().map(el=>el.dataset.id);
+  onCommit(newOrder);
+  activeDrag=null;
+}
+
+// ══════════════════════════════════════════════════════
+//  LIST VIEW
+// ══════════════════════════════════════════════════════
+function render(){
+  const lv=document.getElementById('listView');
+  lv.innerHTML='';
+  sections.forEach(sec=>lv.appendChild(buildCard(sec)));
+  updateHeader();
+  initSecDrag(lv);
+}
+
+function initSecDrag(container){
+  Array.from(container.querySelectorAll('.sec-card')).forEach(card=>{
+    const handle=document.getElementById('sdh_'+card.dataset.key); if(!handle) return;
+    const getCards=()=>Array.from(container.querySelectorAll('.sec-card'));
+    handle.addEventListener('touchstart',e=>{
+      e.preventDefault();e.stopPropagation();
+      if(activeDrag) return;
+      const origEls=getCards();const origIdx=origEls.indexOf(card);
+      card.classList.add('is-dragging');
+      origEls.forEach(el=>{if(el!==card)el.style.transition='transform 0.20s cubic-bezier(.25,.8,.25,1)';});
+      activeDrag={item:card,container,getItemEls:getCards,dur:'0.20s',origIdx,insertIdx:origIdx,itemH:card.offsetHeight,startY:e.touches[0].clientY,
+        onCommit:newOrder=>{
+          sections=newOrder.map(id=>sections.find(s=>s.key===id)).filter(Boolean);
+          LS.set('hz_sections',sections);
+          fbWriteSections(); // ← 순서 변경 → sections 경로만
+        }
+      };
+      document.addEventListener('touchmove',onDragMove,{passive:false});
+      document.addEventListener('touchend',onDragEnd,{once:true});
+    },{passive:false});
+  });
+}
+
+function buildCard(sec){
+  const isEditing=editKey===sec.key;
+  const doneCount=sec.items.filter(it=>checked[it.id]).length;
+  const card=document.createElement('div');
+  card.className='sec-card'+(isEditing?' editing':'');
+  card.dataset.key=sec.key;card.dataset.id=sec.key;card.style.setProperty('--col',sec.col);
+  const head=document.createElement('div');head.className='sec-head';
+  head.innerHTML=`<div class="sec-pip" style="background:${sec.col}"></div><span class="sec-emoji">${sec.emoji}</span><span class="sec-name">${esc(sec.name)}</span><span class="sec-stat" id="stat_${sec.key}">${doneCount}/${sec.items.length}</span><button class="sec-edit-btn">${isEditing?L().doneBtn:L().editBtn}</button>`;
+  head.querySelector('.sec-edit-btn').onclick=()=>toggleEdit(sec.key);
+  head.querySelector('.sec-emoji').addEventListener('click',e=>{e.stopPropagation();openEmojiPicker(sec.key);});
+  head.querySelector('.sec-emoji').addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();openEmojiPicker(sec.key);},{passive:false});
+  const divider=document.createElement('div');divider.className='sec-divider';
+  const ul=document.createElement('ul');ul.className='item-list';ul.id=`list_${sec.key}`;ul.dataset.dragDur='0.20s';
+  sec.items.forEach(item=>ul.appendChild(buildItem(sec,item,isEditing)));
+  card.append(head,divider,ul);
+  const getEls=()=>Array.from(ul.querySelectorAll('.item-li'));
+  const attachFn=initDrag(ul,getEls,newOrder=>{
+    sec.items=newOrder.map(id=>sec.items.find(it=>it.id===id)).filter(Boolean);
+    LS.set('hz_sections',sections);
+    fbWriteSections(); // ← 아이템 순서 변경 → sections 경로만
+    if(curView==='matrix') syncMatrixOrder(sec.key);
+  });
+  card._attachDrag=attachFn;
+  if(isEditing){
+    const ar=document.createElement('div');ar.className='add-row';
+    ar.innerHTML=`<input class="add-input" id="addinput_${sec.key}" placeholder="${L().addPlaceholder}" autocomplete="off"><button class="add-btn">${L().addBtn}</button>`;
+    ar.querySelector('.add-input').onkeydown=e=>{if(e.key==='Enter')doAdd(sec.key);};
+    ar.querySelector('.add-btn').onclick=()=>doAdd(sec.key);
+    card.appendChild(ar);
+  } else {
+    const qa=document.createElement('div');qa.className='quick-add';
+    qa.innerHTML=`<span class="quick-plus" style="color:${sec.col}">+</span><span>${L().quickAdd}</span><div class="sec-drag-handle" id="sdh_${sec.key}">⠿</div>`;
+    qa.addEventListener('click',e=>{if(!e.target.closest('.sec-drag-handle'))toggleEdit(sec.key);});
+    card.appendChild(qa);
+  }
+  return card;
+}
+
+function buildItem(sec,item,isEditing){
+  const isDone=!!checked[item.id];
+  const li=document.createElement('li');
+  li.className='item-li'+(isDone?' done':'');
+  li.dataset.id=item.id;li.style.setProperty('--col',sec.col);
+  const ts=isDone&&checkedTimes[item.id]?fmtTime(checkedTimes[item.id]):'';
+  li.innerHTML=`<div class="swipe-del-bg">삭제</div><div class="item-inner"><div class="item-box"></div><span class="item-label">${esc(item.text)}</span><span class="item-time" id="time_${item.id}">${ts}</span><button class="item-del">−</button><div class="drag-handle">⠿</div></div>`;
+  const box=li.querySelector('.item-box');
+  box.addEventListener('click',e=>{e.stopPropagation();toggleCheck(sec.key,item.id);});
+  box.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();toggleCheck(sec.key,item.id);},{passive:false});
+  setupDoubleTap(li.querySelector('.item-label'),()=>startInlineEdit(sec,item,li));
+  li.querySelector('.item-del').onclick=e=>{e.stopPropagation();doDelete(sec.key,item.id);};
+  initSwipeDelete(li,sec.key,item.id);
+  return li;
+}
+
+function setupDoubleTap(el,cb){
+  let t=null;
+  el.addEventListener('click',e=>{e.stopPropagation();if(t){clearTimeout(t);t=null;cb();}else t=setTimeout(()=>{t=null;},280);});
+}
+
+function startInlineEdit(sec,item,li){
+  if(li.classList.contains('inline-editing')) return;
+  li.classList.add('inline-editing');
+  const lbl=li.querySelector('.item-label'),te=li.querySelector('.item-time');
+  const inp=document.createElement('input');inp.className='inline-input';inp.value=item.text;inp.style.setProperty('--col',sec.col);
+  lbl.replaceWith(inp);if(te) te.style.display='none';
+  requestAnimationFrame(()=>{inp.focus();inp.select();});
+  function commit(){
+    const t=inp.value.trim();if(t&&t!==item.text){item.text=t;LS.set('hz_sections',sections);fbWriteSections();}
+    const sp=document.createElement('span');sp.className='item-label';sp.textContent=t||item.text;
+    inp.replaceWith(sp);if(te) te.style.display='';
+    li.classList.remove('inline-editing');
+    setupDoubleTap(sp,()=>startInlineEdit(sec,item,li));
+  }
+  inp.onblur=commit;
+  inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=item.text;inp.blur();}};
+}
+
+function initSwipeDelete(li,secKey,itemId){
+  const inner=li.querySelector('.item-inner');
+  let startX=0,startY=0,swiping=false,revealed=false;
+  const THRESHOLD=72,MAX=80;
+  li.addEventListener('touchstart',e=>{if(activeDrag)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;swiping=false;},{passive:true});
+  li.addEventListener('touchmove',e=>{
+    if(activeDrag) return;
+    const dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;
+    if(!swiping){if(Math.abs(dx)<4&&Math.abs(dy)<4)return;if(Math.abs(dy)>Math.abs(dx))return;if(dx>0&&!revealed)return;swiping=true;}
+    e.preventDefault();
+    const base=revealed?-MAX:0;const tx=Math.max(-MAX,Math.min(0,base+dx));
+    inner.style.transition='none';inner.style.transform=`translateX(${tx}px)`;
+    li.classList.toggle('swipe-reveal',tx<-20);
+  },{passive:false});
+  li.addEventListener('touchend',e=>{
+    if(!swiping) return;
+    const dx=e.changedTouches[0].clientX-startX;const base=revealed?-MAX:0;const finalDx=base+dx;
+    inner.style.transition='';
+    if(finalDx<-THRESHOLD){inner.style.transform=`translateX(-${MAX}px)`;li.classList.add('swipe-reveal');revealed=true;clearTimeout(li._swipeTimer);li._swipeTimer=setTimeout(()=>resetSwipe(li,inner),3000);}
+    else resetSwipe(li,inner);
+  },{passive:true});
+  li.querySelector('.swipe-del-bg').addEventListener('click',e=>{
+    e.stopPropagation();
+    li.style.transition='opacity .2s, max-height .25s .1s, padding .25s .1s';li.style.opacity='0';li.style.maxHeight=li.offsetHeight+'px';
+    requestAnimationFrame(()=>{li.style.maxHeight='0';li.style.padding='0';li.style.borderBottom='none';});
+    setTimeout(()=>doDelete(secKey,itemId),340);
+  });
+  li.addEventListener('click',()=>{if(revealed)resetSwipe(li,inner);});
+}
+
+function resetSwipe(li,inner){inner.style.transform='';li.classList.remove('swipe-reveal');if(li._swipeTimer){clearTimeout(li._swipeTimer);li._swipeTimer=null;}}
+
+// ══════════════════════════════════════════════════════
+//  Toggle check → checked 경로만 쓰기
+// ══════════════════════════════════════════════════════
+function toggleCheck(secKey,itemId){
+  const nowDone=!checked[itemId];
+  const ts=Date.now();
+  if(nowDone){checked[itemId]=true;checkedTimes[itemId]=ts;}
+  else{delete checked[itemId];delete checkedTimes[itemId];}
+  LS.set('hz_checked',checked);LS.set('hz_ctimes',checkedTimes);
+
+  // ← 원자 쓰기: checked/itemId 경로만!
+  fbWriteCheck(itemId,nowDone,ts);
+
+  const li=document.querySelector(`#listView .item-li[data-id="${itemId}"]`);
+  if(li){
+    li.classList.toggle('done',nowDone);
+    const te=li.querySelector('.item-time');if(te) te.textContent=nowDone?fmtTime(ts):'';
+    if(nowDone){li.classList.add('bop');li.addEventListener('animationend',()=>li.classList.remove('bop'),{once:true});}
+  }
+  const mi=document.querySelector(`#matrixView .m-item[data-id="${itemId}"]`);
+  if(mi){mi.classList.toggle('done',nowDone);if(nowDone){mi.classList.add('bop');mi.addEventListener('animationend',()=>mi.classList.remove('bop'),{once:true});}}
+  updateStat(secKey);updateHeader();updateMatrixGauges(secKey);
+  const allNow=allItems().every(it=>checked[it.id]);
+  if(allNow&&!wasAllDone){fireConfetti();wasAllDone=true;}
+  if(!allNow) wasAllDone=false;
+}
+
+// ══════════════════════════════════════════════════════
+//  MATRIX VIEW
+// ══════════════════════════════════════════════════════
+function renderMatrix(){
+  const mv=document.getElementById('matrixView');mv.innerHTML='';
+  if(settings.arcGauge){
+    const gaugeRow=document.createElement('div');gaugeRow.className='gauge-row';gaugeRow.id='gaugeRow';
+    const C=2*Math.PI*20;
+    sections.forEach(sec=>{
+      const done=sec.items.filter(it=>checked[it.id]).length,total=sec.items.length,pct=total?done/total:0;
+      const div=document.createElement('div');div.className='gauge-item';
+      div.innerHTML=`<div class="arc-outer"><svg class="arc-svg" viewBox="0 0 48 48"><circle class="arc-track" cx="24" cy="24" r="20"/><circle class="arc-fill" id="arc_${sec.key}" cx="24" cy="24" r="20" stroke="${sec.col}" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><div class="arc-emoji-label">${sec.emoji}</div></div><div class="gauge-nums" style="color:${sec.col}" id="gnum_${sec.key}">${done}/${total}</div>${settings.gaugeLabel?'<div class="gauge-name">'+esc(sec.name)+'</div>':''}`;
+      gaugeRow.appendChild(div);
+    });
+    mv.appendChild(gaugeRow);
+  }
+  const grid=document.createElement('div');grid.className='m-grid';
+  sections.forEach(sec=>grid.appendChild(buildQuadCard(sec)));
+  mv.appendChild(grid);
+  initMatrixSecDrag(grid);
+}
+
+function initMatrixSecDrag(grid){
+  const getCards=()=>Array.from(grid.querySelectorAll('.m-quad'));
+  getCards().forEach(card=>{
+    const handle=document.getElementById('msdh_'+card.dataset.id); if(!handle) return;
+    handle.addEventListener('touchstart',e=>{
+      e.preventDefault();e.stopPropagation();if(activeDrag) return;
+      const origEls=getCards();const origIdx=origEls.indexOf(card);
+      card.classList.add('is-dragging');
+      origEls.forEach(el=>{if(el!==card)el.style.transition='transform 0.20s cubic-bezier(.25,.8,.25,1)';});
+      activeDrag={item:card,container:grid,getItemEls:getCards,dur:'0.20s',origIdx,insertIdx:origIdx,itemH:card.offsetHeight,startY:e.touches[0].clientY,
+        onCommit:newOrder=>{
+          sections=newOrder.map(id=>sections.find(s=>s.key===id)).filter(Boolean);
+          LS.set('hz_sections',sections);
+          fbWriteSections();
+          const lv=document.getElementById('listView');
+          if(lv) sections.forEach(s=>{const c=lv.querySelector(`.sec-card[data-key="${s.key}"]`);if(c)lv.appendChild(c);});
+        }
+      };
+      document.addEventListener('touchmove',onDragMove,{passive:false});
+      document.addEventListener('touchend',onDragEnd,{once:true});
+    },{passive:false});
+  });
+}
+
+function buildQuadCard(sec){
+  const done=sec.items.filter(it=>checked[it.id]).length,total=sec.items.length,pct=total?done/total:0;
+  const card=document.createElement('div');card.className='m-quad';card.dataset.id=sec.key;card.style.setProperty('--col',sec.col);
+  const head=document.createElement('div');head.className='m-quad-head';
+  head.innerHTML=`<div class="m-sec-drag" id="msdh_${sec.key}">⠿</div><div class="m-pip" style="background:${sec.col}"></div><span class="m-quad-emoji">${sec.emoji}</span><span class="m-quad-name">${esc(sec.name)}</span><span class="m-quad-stat" id="mstat_${sec.key}">${done}/${total}</span>`;
+  card.appendChild(head);
+  if(settings.miniBar){
+    const bw=document.createElement('div');bw.className='m-minibar-wrap';bw.id=`minibar_${sec.key}`;
+    bw.innerHTML=`<div class="m-minibar-fill" id="minifill_${sec.key}" style="width:${pct*100}%;background:${sec.col};"></div>`;
+    card.appendChild(bw);
+  } else {const d=document.createElement('div');d.className='m-quad-divider';card.appendChild(d);}
+  const items=document.createElement('div');items.className='m-items';items.id=`mitems_${sec.key}`;items.dataset.dragDur='0.20s';
+  sec.items.forEach(item=>items.appendChild(buildMItem(sec,item)));
+  card.appendChild(items);
+  const getEls=()=>Array.from(items.querySelectorAll('.m-item'));
+  initDrag(items,getEls,newOrder=>{
+    sec.items=newOrder.map(id=>sec.items.find(it=>it.id===id)).filter(Boolean);
+    LS.set('hz_sections',sections);
+    fbWriteSections();
+    syncListOrder(sec.key);
+  });
+  let isAdding=false;
+  const addTrig=document.createElement('div');addTrig.className='m-add';
+  addTrig.innerHTML=`<span style="color:${sec.col}">+</span> ${L().mAddTrig.slice(2)}`;
+  addTrig.onclick=()=>{
+    if(isAdding) return;isAdding=true;addTrig.style.display='none';
+    const ar=document.createElement('div');ar.className='m-add-row';ar.style.setProperty('--col',sec.col);
+    ar.innerHTML=`<input class="m-add-input" placeholder="${L().mAddPlaceholder}" autocomplete="off"><button class="m-add-btn">${L().addBtn}</button>`;
+    const inp=ar.querySelector('.m-add-input');
+    const doIt=()=>{
+      const txt=inp.value.trim();if(!txt) return;
+      const newId=uid(sec.key);sec.items.push({id:newId,text:txt});LS.set('hz_sections',sections);
+      fbWriteSections(); // ← 항목 추가 → sections 경로만
+      items.appendChild(buildMItem(sec,{id:newId,text:txt}));
+      inp.value='';inp.focus();updateStat(sec.key);updateHeader();updateMatrixGauges(sec.key);
+    };
+    inp.onkeydown=e=>{if(e.key==='Enter')doIt();if(e.key==='Escape'){ar.remove();addTrig.style.display='';isAdding=false;}};
+    ar.querySelector('.m-add-btn').onclick=doIt;
+    card.insertBefore(ar,addTrig);setTimeout(()=>inp.focus(),50);
+  };
+  card.appendChild(addTrig);
+  return card;
+}
+
+function buildMItem(sec,item){
+  const isDone=!!checked[item.id];
+  const row=document.createElement('div');
+  row.className='m-item'+(isDone?' done':'');row.dataset.id=item.id;row.style.setProperty('--col',sec.col);
+  row.innerHTML=`<div class="m-box"></div><span class="m-text">${esc(item.text)}</span><div class="m-drag">⠿</div>`;
+  const box=row.querySelector('.m-box');
+  box.addEventListener('click',e=>{e.stopPropagation();toggleCheck(sec.key,item.id);});
+  box.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();toggleCheck(sec.key,item.id);},{passive:false});
+  setupDoubleTap(row.querySelector('.m-text'),()=>startMInlineEdit(sec,item,row));
+  return row;
+}
+
+function startMInlineEdit(sec,item,row){
+  if(row.classList.contains('inline-editing')) return;
+  row.classList.add('inline-editing');
+  const textEl=row.querySelector('.m-text');
+  const inp=document.createElement('input');inp.className='m-add-input';inp.style.cssText='flex:1;font-size:12px;padding:3px 8px;';inp.value=item.text;inp.style.setProperty('--col',sec.col);
+  textEl.replaceWith(inp);requestAnimationFrame(()=>{inp.focus();inp.select();});
+  function commit(){
+    const t=inp.value.trim();if(t&&t!==item.text){item.text=t;LS.set('hz_sections',sections);fbWriteSections();}
+    const sp=document.createElement('span');sp.className='m-text';sp.textContent=t||item.text;
+    inp.replaceWith(sp);row.classList.remove('inline-editing');
+    setupDoubleTap(sp,()=>startMInlineEdit(sec,item,row));
+    const li=document.querySelector(`#listView .item-li[data-id="${item.id}"] .item-label`);
+    if(li) li.textContent=t||item.text;
+  }
+  inp.onblur=commit;
+  inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=item.text;inp.blur();}};
+}
+
+function syncListOrder(secKey){
+  const ul=document.getElementById(`list_${secKey}`);if(!ul) return;
+  const sec=sections.find(s=>s.key===secKey);if(!sec) return;
+  sec.items.forEach(item=>{const li=ul.querySelector(`.item-li[data-id="${item.id}"]`);if(li)ul.appendChild(li);});
+}
+
+function syncMatrixOrder(secKey){
+  const items=document.getElementById(`mitems_${secKey}`);if(!items) return;
+  const sec=sections.find(s=>s.key===secKey);if(!sec) return;
+  sec.items.forEach(item=>{const mi=items.querySelector(`.m-item[data-id="${item.id}"]`);if(mi)items.appendChild(mi);});
+}
+
+function updateMatrixGauges(secKey){
+  if(curView!=='matrix') return;
+  const sec=sections.find(s=>s.key===secKey);if(!sec) return;
+  const done=sec.items.filter(it=>checked[it.id]).length,total=sec.items.length,pct=total?done/total:0;
+  const C=2*Math.PI*20;
+  const arc=document.getElementById(`arc_${secKey}`);if(arc) arc.style.strokeDashoffset=C*(1-pct);
+  const gnum=document.getElementById(`gnum_${secKey}`);if(gnum) gnum.textContent=`${done}/${total}`;
+  const mstat=document.getElementById(`mstat_${secKey}`);if(mstat) mstat.textContent=`${done}/${total}`;
+  const fill=document.getElementById(`minifill_${secKey}`);if(fill) fill.style.width=`${pct*100}%`;
+}
+
+// ══════════════════════════════════════════════════════
+//  SETTINGS VIEW
+// ══════════════════════════════════════════════════════
+function renderSettings(){
+  const sv=document.getElementById('settingsView');sv.innerHTML='';
+  if(auth.currentUser){
+    const userBox=document.createElement('div');
+    userBox.style.cssText='padding:12px;font-size:12px;color:var(--dim);text-align:center;background:var(--surf2);border-radius:14px;margin-bottom:16px;border:1px dashed var(--border);';
+    userBox.innerHTML=`☁️ <b style="color:var(--text)">${currentUser.email}</b> — 경로별 원자 동기화 중`;
+    sv.appendChild(userBox);
+  }
+  // App name
+  const nh=document.createElement('div');nh.className='settings-heading';nh.textContent=L().settingAppName;
+  const nc=document.createElement('div');nc.className='settings-card';
+  const nr=document.createElement('div');nr.className='settings-row';nr.style.gap='10px';
+  nr.innerHTML=`<div class="settings-info"><input id="appNameSettingInput" style="width:100%;background:none;border:none;border-bottom:1.5px solid var(--gold);color:var(--text);font-family:inherit;font-size:16px;font-weight:700;padding:4px 2px;outline:none;letter-spacing:-0.3px;" value="${esc(appTitle)}" placeholder="${L().appNamePlaceholder}"></div>`;
+  nr.querySelector('#appNameSettingInput').onchange=function(){
+    const v=this.value.trim();if(v){appTitle=v;LS.set('hz_title',appTitle);renderTitle();fbWriteMeta('appTitle',appTitle);}
+  };
+  nr.querySelector('#appNameSettingInput').onkeydown=function(e){if(e.key==='Enter')this.blur();};
+  nc.appendChild(nr);
+  const nw=document.createElement('div');nw.className='settings-section';nw.append(nh,nc);sv.appendChild(nw);
+
+  // Theme
+  const th=document.createElement('div');th.className='settings-heading';th.textContent=L().settingTheme;
+  const tc=document.createElement('div');tc.className='settings-card';
+  ['dark','cream','gray','mint','pink'].forEach(k=>{
+    const row=document.createElement('div');row.className='settings-row';row.style.cursor='pointer';
+    const isActive=curTheme===k;
+    row.innerHTML=`<div class="settings-info"><div class="settings-label">${L().themes[k]}</div><div class="settings-sub">${L().themeSubs[k]}</div></div><div style="width:22px;height:22px;border-radius:50%;border:2px solid ${isActive?'var(--gold)':'var(--border)'};display:flex;align-items:center;justify-content:center;">${isActive?'<div style="width:10px;height:10px;border-radius:50%;background:var(--gold);"></div>':''}</div>`;
+    row.onclick=()=>{applyTheme(k);fbWriteMeta('curTheme',k);renderSettings();};
+    tc.appendChild(row);
+  });
+  const tw=document.createElement('div');tw.className='settings-section';tw.append(th,tc);sv.appendChild(tw);
+
+  // Lang
+  const lh=document.createElement('div');lh.className='settings-heading';lh.textContent=L().settingLang;
+  const lc=document.createElement('div');lc.className='settings-card';
+  ['ko','en','es'].forEach(k=>{
+    const row=document.createElement('div');row.className='settings-row';row.style.cursor='pointer';
+    const isActive=curLang===k;
+    row.innerHTML=`<div class="settings-info"><div class="settings-label">${L().langs[k]}</div></div><div style="width:22px;height:22px;border-radius:50%;border:2px solid ${isActive?'var(--gold)':'var(--border)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${isActive?'<div style="width:10px;height:10px;border-radius:50%;background:var(--gold);"></div>':''}</div>`;
+    row.onclick=()=>{applyLang(k);fbWriteMeta('curLang',k);};
+    lc.appendChild(row);
+  });
+  const lw=document.createElement('div');lw.className='settings-section';lw.append(lh,lc);sv.appendChild(lw);
+
+  // Viz toggles
+  const vh=document.createElement('div');vh.className='settings-heading';vh.textContent=L().settingViz;
+  const vc=document.createElement('div');vc.className='settings-card';
+  [{icon:'⭕',label:L().arcLabel,sub:L().arcSub,key:'arcGauge'},{icon:'▬',label:L().barLabel,sub:L().barSub,key:'miniBar'},{icon:'🏷️',label:L().gaugeLabelLabel,sub:L().gaugeLabelSub,key:'gaugeLabel'}].forEach(r=>{
+    const row=document.createElement('div');row.className='settings-row';
+    row.innerHTML=`<div class="settings-icon">${r.icon}</div><div class="settings-info"><div class="settings-label">${r.label}</div><div class="settings-sub">${r.sub}</div></div><label class="toggle-switch"><input type="checkbox" ${settings[r.key]?'checked':''} data-key="${r.key}"><div class="toggle-track"><div class="toggle-thumb"></div></div></label>`;
+    row.querySelector('input').onchange=function(){settings[this.dataset.key]=this.checked;LS.set('hz_settings',settings);fbWriteMeta('settings',settings);};
+    vc.appendChild(row);
+  });
+  const vw=document.createElement('div');vw.className='settings-section';vw.append(vh,vc);sv.appendChild(vw);
+
+  // Section manager
+  const sh=document.createElement('div');sh.className='settings-heading';sh.textContent=L().settingSection;
+  const sc=document.createElement('div');sc.className='settings-card';sc.id='secMgrCard';
+  sections.forEach(sec=>sc.appendChild(buildSecMgrRow(sec)));
+  const asr=document.createElement('div');asr.className='add-sec-row';
+  asr.innerHTML=`<input class="add-sec-input" id="addSecInput" placeholder="${L().addSecPlaceholder}" autocomplete="off"><button class="add-sec-btn">${L().addSecBtn}</button>`;
+  asr.querySelector('.add-sec-input').onkeydown=e=>{if(e.key==='Enter')addSection();};
+  asr.querySelector('.add-sec-btn').onclick=addSection;
+  sc.appendChild(asr);
+  const sw=document.createElement('div');sw.className='settings-section';sw.append(sh,sc);sv.appendChild(sw);
+
+  // Danger
+  const dh=document.createElement('div');dh.className='settings-heading';dh.textContent=L().settingData;
+  const db2=document.createElement('button');db2.className='danger-btn';db2.textContent=L().dangerBtn;
+  db2.onclick=()=>document.getElementById('dangerOverlay').classList.add('show');
+  const dw=document.createElement('div');dw.className='settings-section';dw.append(dh,db2);sv.appendChild(dw);
+}
+
+function buildSecMgrRow(sec){
+  const row=document.createElement('div');row.className='sec-mgr-item';row.dataset.key=sec.key;
+  row.innerHTML=`<div class="sec-mgr-color" style="background:${sec.col}" data-key="${sec.key}"></div><div class="sec-mgr-emoji" data-key="${sec.key}">${sec.emoji}</div><input class="sec-mgr-name" value="${esc(sec.name)}" data-key="${sec.key}"><button class="sec-mgr-del" data-key="${sec.key}">−</button>`;
+  row.querySelector('.sec-mgr-color').onclick=()=>openColorPicker(sec.key);
+  row.querySelector('.sec-mgr-emoji').onclick=()=>openEmojiPicker(sec.key);
+  row.querySelector('.sec-mgr-name').onchange=function(){
+    const s=sections.find(x=>x.key===this.dataset.key);
+    if(s){s.name=this.value.trim()||s.name;LS.set('hz_sections',sections);fbWriteSections();}
+  };
+  row.querySelector('.sec-mgr-del').onclick=()=>deleteSection(sec.key);
+  return row;
+}
+
+function addSection(){
+  const inp=document.getElementById('addSecInput');
+  const name=inp.value.trim();if(!name) return;
+  const newSec={key:uid('sec'),name,emoji:'⭐',col:PALETTE[sections.length%PALETTE.length],items:[]};
+  sections.push(newSec);LS.set('hz_sections',sections);
+  fbWriteSections(); // ← sections 경로만
+  document.getElementById('secMgrCard').insertBefore(buildSecMgrRow(newSec),document.querySelector('.add-sec-row'));
+  inp.value='';showToast(L().toastSecAdded(name));
+}
+
+function deleteSection(key){
+  if(sections.length<=1){showToast(L().toastMinSec);return;}
+  const sec=sections.find(s=>s.key===key);
+  // 해당 섹션 아이템들의 checked도 Firebase에서 제거
+  sec.items.forEach(it=>{
+    delete checked[it.id];delete checkedTimes[it.id];
+    if(currentUser){
+      remove(ref(db,`users/${currentUser.uid}/checked/${it.id}`));
+      remove(ref(db,`users/${currentUser.uid}/checkedTimes/${it.id}`));
+    }
+  });
+  sections=sections.filter(s=>s.key!==key);
+  LS.set('hz_sections',sections);LS.set('hz_checked',checked);LS.set('hz_ctimes',checkedTimes);
+  fbWriteSections(); // ← sections 경로만
+  document.querySelector(`.sec-mgr-item[data-key="${key}"]`)?.remove();
+  showToast(L().toastSecDeleted);
+}
+
+// Color picker
+let colorTargetKey=null;
+function openColorPicker(k){
+  colorTargetKey=k;
+  const sec=sections.find(s=>s.key===k);
+  const pal=document.getElementById('colorPalette');pal.innerHTML='';
+  PALETTE.forEach(c=>{
+    const sw=document.createElement('div');sw.className='cp-swatch'+(sec.col===c?' selected':'');sw.style.background=c;
+    sw.onclick=()=>{pal.querySelectorAll('.cp-swatch').forEach(x=>x.classList.remove('selected'));sw.classList.add('selected');document.getElementById('colorHexInput').value=c;};
+    pal.appendChild(sw);
+  });
+  document.getElementById('colorHexInput').value=sec.col;
+  document.getElementById('colorOverlay').classList.add('show');
+}
+document.getElementById('colorCancel').onclick=()=>document.getElementById('colorOverlay').classList.remove('show');
+document.getElementById('colorOk').onclick=()=>{
+  const hex=document.getElementById('colorHexInput').value.trim();
+  if(!hex.match(/^#[0-9a-fA-F]{3,6}$/)){showToast(L().toastColorErr);return;}
+  const sec=sections.find(s=>s.key===colorTargetKey);
+  if(sec){sec.col=hex;LS.set('hz_sections',sections);fbWriteSections();}
+  document.querySelector(`.sec-mgr-color[data-key="${colorTargetKey}"]`)?.style.setProperty('background',hex);
+  document.getElementById('colorOverlay').classList.remove('show');
+  showToast(L().toastColorChanged);
+};
+
+// Emoji picker
+let emojiTargetKey=null;
+function openEmojiPicker(k){
+  emojiTargetKey=k;
+  const grid=document.getElementById('emojiGrid');grid.innerHTML='';
+  EMOJIS.forEach(em=>{
+    const btn=document.createElement('div');btn.className='emoji-btn';btn.textContent=em;
+    btn.onclick=()=>{
+      const sec=sections.find(s=>s.key===emojiTargetKey);
+      if(sec){sec.emoji=em;LS.set('hz_sections',sections);fbWriteSections();}
+      document.querySelector(`.sec-mgr-emoji[data-key="${emojiTargetKey}"]`)?.replaceChildren();
+      const mgr=document.querySelector(`.sec-mgr-emoji[data-key="${emojiTargetKey}"]`);if(mgr)mgr.textContent=em;
+      const head=document.querySelector(`#listView .sec-card[data-key="${emojiTargetKey}"] .sec-emoji`);if(head)head.textContent=em;
+      document.getElementById('emojiOverlay').classList.remove('show');
+      showToast(L().toastEmojiChanged);
+    };
+    grid.appendChild(btn);
+  });
+  document.getElementById('emojiOverlay').classList.add('show');
+}
+document.getElementById('emojiCancel').onclick=()=>document.getElementById('emojiOverlay').classList.remove('show');
+
+// Danger — 전체 경로 삭제 후 재초기화
+document.getElementById('dangerCancel').onclick=()=>document.getElementById('dangerOverlay').classList.remove('show');
+document.getElementById('dangerOk').onclick=async()=>{
+  await fbNukeAll();
+  sections=JSON.parse(JSON.stringify(DEFAULTS));
+  checked={};checkedTimes={};streak=0;lastReset=null;appTitle='Hazel Check';settings={arcGauge:true,miniBar:true,gaugeLabel:true};
+  ['hz_sections','hz_checked','hz_ctimes','hz_streak','hz_lastReset','hz_title','hz_settings','hz_theme','hz_lang'].forEach(k=>localStorage.removeItem(k));
+  applyTheme('dark');
+  document.getElementById('dangerOverlay').classList.remove('show');
+  renderTitle();document.getElementById('streakNum').textContent=0;
+  setView('list');showToast(L().toastReset2);
+  if(currentUser) fbWriteSections(); // 초기화 후 기본값 올리기
+};
+
+// ══════════════════════════════════════════════════════
+//  Edit / Add / Delete
+// ══════════════════════════════════════════════════════
+function toggleEdit(k){editKey=editKey===k?null:k;render();if(editKey===k)setTimeout(()=>document.getElementById(`addinput_${k}`)?.focus(),80);}
+
+function doAdd(secKey){
+  const inp=document.getElementById(`addinput_${secKey}`);
+  const text=inp?.value.trim();if(!text){inp?.focus();return;}
+  const sec=sections.find(s=>s.key===secKey);
+  const newId=uid(secKey);sec.items.push({id:newId,text});LS.set('hz_sections',sections);
+  fbWriteSections(); // ← sections 경로만
+  const ul=document.getElementById(`list_${secKey}`);
+  if(ul){
+    const li=buildItem(sec,{id:newId,text},true);ul.appendChild(li);
+    const card=document.querySelector(`.sec-card[data-key="${secKey}"]`);
+    if(card&&card._attachDrag){const h=li.querySelector('.drag-handle');if(h)card._attachDrag(h);}
+  }
+  inp.value='';inp.focus();updateStat(secKey);updateHeader();
+}
+
+function doDelete(secKey,itemId){
+  const sec=sections.find(s=>s.key===secKey);
+  sec.items=sec.items.filter(it=>it.id!==itemId);
+  delete checked[itemId];delete checkedTimes[itemId];
+  LS.set('hz_sections',sections);LS.set('hz_checked',checked);LS.set('hz_ctimes',checkedTimes);
+  fbWriteSections(); // ← sections 경로만
+  // checked 경로에서도 제거
+  if(currentUser){
+    remove(ref(db,`users/${currentUser.uid}/checked/${itemId}`));
+    remove(ref(db,`users/${currentUser.uid}/checkedTimes/${itemId}`));
+  }
+  document.querySelector(`.item-li[data-id="${itemId}"]`)?.remove();
+  updateStat(secKey);updateHeader();
+}
+
+// ══════════════════════════════════════════════════════
+//  Header / Stats
+// ══════════════════════════════════════════════════════
+function updateHeader(){
+  const all=allItems(),total=all.length,done=all.filter(it=>checked[it.id]).length;
+  document.getElementById('progFill').style.width=`${total?(done/total)*100:0}%`;
+  document.getElementById('progLabel').textContent=L().complete(done,total);
+}
+
+function updateStat(secKey){
+  const sec=sections.find(s=>s.key===secKey);if(!sec) return;
+  const done=sec.items.filter(it=>checked[it.id]).length;
+  const el=document.getElementById(`stat_${secKey}`);
+  if(el) el.textContent=`${done}/${sec.items.length}`;
+}
+
+// ══════════════════════════════════════════════════════
+//  Discord
+// ══════════════════════════════════════════════════════
+let discordMsg='';
+document.getElementById('discordBtn').onclick=()=>{
+  const now=new Date();
+  const tag=`#${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const totalDone=allItems().filter(it=>checked[it.id]).length;
+  const isTodo=totalDone===0;
+  const lines=[];
+  if(isTodo){
+    lines.push(`${tag} ${L().discordTodoHash}\n`);
+    sections.forEach(sec=>{if(!sec.items.length)return;lines.push(`${sec.emoji} ${sec.name}`);sec.items.forEach(it=>lines.push(`• ${it.text}`));lines.push('');});
+  } else {
+    lines.push(`${tag} ${L().discordDoneHash}\n`);
+    sections.forEach(sec=>{const done=sec.items.filter(it=>checked[it.id]);if(!done.length)return;lines.push(`${sec.emoji} ${sec.name}`);done.forEach(it=>lines.push(`[V] ${it.text}`));lines.push('');});
+  }
+  discordMsg=lines.join('\n').trim();
+  document.getElementById('sheetPreview').textContent=discordMsg;
+  document.getElementById('sheetTag').textContent=isTodo?L().tagTodo:L().tagDone;
+  document.getElementById('sheetTag').className='sheet-tag '+(isTodo?'tag-todo':'tag-done');
+  document.getElementById('sheetTitle').textContent=isTodo?'오늘 할 일 🌅':'오늘 하루 인증 🌙';
+  document.getElementById('discordOverlay').classList.add('show');
+};
+document.getElementById('discordCancel').onclick=()=>document.getElementById('discordOverlay').classList.remove('show');
+document.getElementById('discordCopy').onclick=async()=>{
+  try{await navigator.clipboard.writeText(discordMsg);}
+  catch{const ta=document.createElement('textarea');ta.value=discordMsg;ta.style.cssText='position:fixed;opacity:0;';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
+  document.getElementById('discordOverlay').classList.remove('show');
+  showToast(L().toastCopied);
+};
+
+// ══════════════════════════════════════════════════════
+//  Reset + Streak → streak/checked 경로만 쓰기
+// ══════════════════════════════════════════════════════
+document.getElementById('resetBtn').onclick=()=>document.getElementById('resetOverlay').classList.add('show');
+document.getElementById('resetCancel').onclick=()=>document.getElementById('resetOverlay').classList.remove('show');
+document.getElementById('resetOk').onclick=()=>{
+  const today=todayStr();
+  if(!lastReset) streak=1;
+  else{const d=dayDiff(lastReset,today);if(d===0){}else if(d===1)streak++;else streak=1;}
+  lastReset=today;LS.set('hz_streak',streak);LS.set('hz_lastReset',lastReset);
+  document.getElementById('streakNum').textContent=streak;
+  const pill=document.getElementById('streakPill');
+  pill.classList.add('pulse');pill.addEventListener('animationend',()=>pill.classList.remove('pulse'),{once:true});
+  checked={};checkedTimes={};wasAllDone=false;
+  LS.set('hz_checked',checked);LS.set('hz_ctimes',checkedTimes);
+  // ← 원자 쓰기: streak 경로 + checked 경로만
+  fbWriteStreak();
+  fbClearChecked();
+  document.getElementById('resetOverlay').classList.remove('show');
+  editKey=null;render();
+  if(curView==='matrix') renderMatrix();
+  showToast(L().toastReset(streak));
+};
+
+// ══════════════════════════════════════════════════════
+//  Confetti
+// ══════════════════════════════════════════════════════
+function fireConfetti(){
+  const cv=document.getElementById('confettiCanvas'),ctx=cv.getContext('2d');
+  cv.width=window.innerWidth;cv.height=window.innerHeight;
+  const cols=['#D4A853','#C4898B','#7BAE8C','#7B9FC4','#EEE8DC','#F0C060'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-10,r:Math.random()*5+3,color:cols[~~(Math.random()*cols.length)],vx:(Math.random()-.5)*3,vy:Math.random()*3+2,rot:Math.random()*360,rotV:(Math.random()-.5)*6,shape:Math.random()>.5?'rect':'circle'}));
+  let f=0;
+  (function draw(){ctx.clearRect(0,0,cv.width,cv.height);ps.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.color;p.shape==='rect'?ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r):(ctx.beginPath(),ctx.arc(0,0,p.r,0,Math.PI*2),ctx.fill());ctx.restore();p.x+=p.vx;p.y+=p.vy;p.rot+=p.rotV;p.vy+=0.06;});if(++f<150)requestAnimationFrame(draw);else ctx.clearRect(0,0,cv.width,cv.height);})();
+  showToast(L().toastAllDone);
+}
+
+// ══════════════════════════════════════════════════════
+//  Toast / Date / Streak
+// ══════════════════════════════════════════════════════
+let toastTimer=null;
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2800);}
+function initDate(){const now=new Date();document.getElementById('dateLbl').textContent=L().dateFormat(now.getMonth()+1,now.getDate(),L().days[now.getDay()]);}
+function initStreak(){if(lastReset){const d=dayDiff(lastReset,todayStr());if(d>1){streak=0;LS.set('hz_streak',streak);}}document.getElementById('streakNum').textContent=streak;}
+
+['discordOverlay','resetOverlay','colorOverlay','emojiOverlay','dangerOverlay'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show');});
+});
+
+// ── Init ──
+initDate();initStreak();renderTitle();applyTheme(curTheme);applyLang(curLang);setView('list');
+</script>
+</body>
+</html>

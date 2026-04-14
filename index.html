@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -90,6 +91,11 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
 .sec-drag-handle{display:flex;align-items:center;padding:4px;color:var(--border);font-size:15px;cursor:grab;touch-action:none;flex-shrink:0;margin-left:auto;transition:color .2s;}
 .sec-drag-handle:active{color:var(--dim);}
 .quick-plus{font-size:18px;font-weight:300;line-height:1;}
+.sec-toggle{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;color:var(--dim);font-size:35px;cursor:pointer;touch-action:manipulation;transition:transform .22s ease;border-radius:6px;user-select:none;-webkit-user-select:none;}
+.sec-toggle:active{background:var(--surf2);}
+.sec-card.collapsed .sec-toggle{transform:rotate(-90deg);}
+.sec-body{overflow:hidden;max-height:2000px;transition:max-height .3s cubic-bezier(.4,0,.2,1),opacity .25s ease;opacity:1;}
+.sec-card.collapsed .sec-body{max-height:0;opacity:0;}
 .gauge-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--surface);border-radius:16px;padding:12px 8px 10px;}
 .gauge-item{display:flex;flex-direction:column;align-items:center;gap:4px;}
 .arc-outer{position:relative;width:52px;height:52px;}
@@ -548,6 +554,7 @@ let editKey     =null;
 let curView     ='list';
 let editingName =false;
 let wasAllDone  =false;
+let collapsedSecs = LS.get('hz_collapsed', {});  // 섹션 접힘 상태
 
 // ══════════════════════════════════════════════════════
 //  Util
@@ -731,38 +738,59 @@ function initSecDrag(container){
 
 function buildCard(sec){
   const isEditing=editKey===sec.key;
+  const isCollapsed=!!collapsedSecs[sec.key];
   const doneCount=sec.items.filter(it=>checked[it.id]).length;
   const card=document.createElement('div');
-  card.className='sec-card'+(isEditing?' editing':'');
+  card.className='sec-card'+(isEditing?' editing':'')+(isCollapsed?' collapsed':'');
   card.dataset.key=sec.key;card.dataset.id=sec.key;card.style.setProperty('--col',sec.col);
+
+  // ── 헤더 ──
   const head=document.createElement('div');head.className='sec-head';
-  head.innerHTML=`<div class="sec-pip" style="background:${sec.col}"></div><span class="sec-emoji">${sec.emoji}</span><span class="sec-name">${esc(sec.name)}</span><span class="sec-stat" id="stat_${sec.key}">${doneCount}/${sec.items.length}</span><button class="sec-edit-btn">${isEditing?L().doneBtn:L().editBtn}</button>`;
-  head.querySelector('.sec-edit-btn').onclick=()=>toggleEdit(sec.key);
+  head.innerHTML=`<div class="sec-toggle">▾</div><div class="sec-pip" style="background:${sec.col}"></div><span class="sec-emoji">${sec.emoji}</span><span class="sec-name">${esc(sec.name)}</span><span class="sec-stat" id="stat_${sec.key}">${doneCount}/${sec.items.length}</span><button class="sec-edit-btn">${isEditing?L().doneBtn:L().editBtn}</button>`;
+
+  // 토글 버튼 클릭
+  const toggleBtn=head.querySelector('.sec-toggle');
+  const doToggle=e=>{
+    e.stopPropagation();
+    collapsedSecs[sec.key]=!collapsedSecs[sec.key];
+    LS.set('hz_collapsed',collapsedSecs);
+    card.classList.toggle('collapsed',!!collapsedSecs[sec.key]);
+  };
+  toggleBtn.addEventListener('click',doToggle);
+  toggleBtn.addEventListener('touchend',e=>{e.preventDefault();doToggle(e);},{passive:false});
+
+  head.querySelector('.sec-edit-btn').onclick=e=>{e.stopPropagation();toggleEdit(sec.key);};
   head.querySelector('.sec-emoji').addEventListener('click',e=>{e.stopPropagation();openEmojiPicker(sec.key);});
   head.querySelector('.sec-emoji').addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();openEmojiPicker(sec.key);},{passive:false});
+
+  // ── 바디 (접히는 영역) ──
+  const body=document.createElement('div');body.className='sec-body';
   const divider=document.createElement('div');divider.className='sec-divider';
   const ul=document.createElement('ul');ul.className='item-list';ul.id=`list_${sec.key}`;ul.dataset.dragDur='0.20s';
   sec.items.forEach(item=>ul.appendChild(buildItem(sec,item,isEditing)));
-  card.append(head,divider,ul);
+  body.append(divider,ul);
+  card.append(head,body);
+
   const getEls=()=>Array.from(ul.querySelectorAll('.item-li'));
   const attachFn=initDrag(ul,getEls,newOrder=>{
     sec.items=newOrder.map(id=>sec.items.find(it=>it.id===id)).filter(Boolean);
     LS.set('hz_sections',sections);
-    fbWriteSections(); // ← 아이템 순서 변경 → sections 경로만
+    fbWriteSections();
     if(curView==='matrix') syncMatrixOrder(sec.key);
   });
   card._attachDrag=attachFn;
+
   if(isEditing){
     const ar=document.createElement('div');ar.className='add-row';
     ar.innerHTML=`<input class="add-input" id="addinput_${sec.key}" placeholder="${L().addPlaceholder}" autocomplete="off"><button class="add-btn">${L().addBtn}</button>`;
     ar.querySelector('.add-input').onkeydown=e=>{if(e.key==='Enter')doAdd(sec.key);};
     ar.querySelector('.add-btn').onclick=()=>doAdd(sec.key);
-    card.appendChild(ar);
+    body.appendChild(ar);
   } else {
     const qa=document.createElement('div');qa.className='quick-add';
     qa.innerHTML=`<span class="quick-plus" style="color:${sec.col}">+</span><span>${L().quickAdd}</span><div class="sec-drag-handle" id="sdh_${sec.key}">⠿</div>`;
     qa.addEventListener('click',e=>{if(!e.target.closest('.sec-drag-handle'))toggleEdit(sec.key);});
-    card.appendChild(qa);
+    body.appendChild(qa);
   }
   return card;
 }
@@ -1331,5 +1359,6 @@ document.addEventListener('visibilitychange', () => {
 // ── Init ──
 initDate();initStreak();renderTitle();applyTheme(curTheme);applyLang(curLang);setView('list');
 </script>
+
 </body>
 </html>

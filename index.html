@@ -306,7 +306,6 @@ async function fbWriteCheck(itemId, isChecked, timestamp) {
         } else {
             await remove(ref(db, `users/${uid}/checked/${itemId}`));
             await remove(ref(db, `users/${uid}/checkedTimes/${itemId}`));
-        }
 
         // 2. Notion 업데이트 (추가된 부분)
         // 먼저 이 아이템에 연결된 Notion Page ID가 있는지 확인해

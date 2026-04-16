@@ -984,6 +984,7 @@ function buildQuadCard(sec){
       const txt=inp.value.trim();if(!txt) return;
       const newId=uid(sec.key);sec.items.push({id:newId,text:txt});LS.set('hz_sections',sections);
       fbWriteSections(); // ← 항목 추가 → sections 경로만
+      addToNotion(txt, sec.name, newId); // ← 이 줄을 새로 추가!
       items.appendChild(buildMItem(sec,{id:newId,text:txt}));
       inp.value='';inp.focus();updateStat(sec.key);updateHeader();updateMatrixGauges(sec.key);
     };
@@ -1237,6 +1238,8 @@ function doAdd(secKey){
   const sec=sections.find(s=>s.key===secKey);
   const newId=uid(secKey);sec.items.push({id:newId,text});LS.set('hz_sections',sections);
   fbWriteSections(); // ← sections 경로만
+      // Notion에도 생성 (추가)
+      addToNotion(text, sec.name, newId);
   const ul=document.getElementById(`list_${secKey}`);
   if(ul){
     const li=buildItem(sec,{id:newId,text},true);ul.appendChild(li);

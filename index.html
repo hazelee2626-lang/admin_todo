@@ -3,158 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Hazel Check">
   <title>Hazel Check</title>
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css');
     :root {
-      --bg:#12100B; --surface:#1B1813; --surf2:#232018; --surf3:#2A2620;
-      --text:#EEE8DC; --dim:#9A8E7E; --faint:#5A5248; --border:#2B2720;
-      --gold:#D4A853; --discord:#5865F2;
+      --bg:#12100B; --surface:#1B1813; --surf2:#232018; --text:#EEE8DC;
+      --dim:#9A8E7E; --border:#2B2720; --gold:#D4A853;
     }
-    [data-theme="cream"]{--bg:#FDFAF4;--surface:#FFFFFF;--surf2:#F0EDE6;--surf3:#E8E4DC;--text:#2C2420;--dim:#9A9690;--faint:#C0BCB6;--border:#E0DCD4;}
-    [data-theme="gray"] {--bg:#F4F4F6;--surface:#FFFFFF;--surf2:#E8E8EE;--surf3:#DCDDE2;--text:#1A1A2E;--dim:#8888A0;--faint:#C0C0C8;--border:#DCDDE2;}
-    [data-theme="mint"] {--bg:#F0F7F4;--surface:#FFFFFF;--surf2:#DEF0E8;--surf3:#D0E8E0;--text:#1A2E28;--dim:#6A9080;--faint:#A0C0B8;--border:#C8E0D4;}
-    [data-theme="pink"] {--bg:#FDF4F4;--surface:#FFFFFF;--surf2:#F0DEDE;--surf3:#E8D0D0;--text:#2E1A1A;--dim:#907070;--faint:#C0A0A0;--border:#EAD4D4;}
-    
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-    body{background:var(--bg);color:var(--text);font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;min-height:100svh;padding-bottom:calc(150px + env(safe-area-inset-bottom));overflow-x:hidden;}
-    
-    /* (스타일 생략 - 하젤의 기존 디자인 유지됨) */
-    header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(safe-area-inset-top) + 18px) 16px 12px;}
-    .hdr-row1{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
-    .app-name{font-size:20px;font-weight:700;color:var(--text);}
-    .app-name em{color:var(--gold);font-style:normal;}
-    .prog-track{height:2px;background:var(--border);border-radius:2px;overflow:hidden;}
-    .prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),#C4898B);transition:width .5s ease;}
-    #listView{padding:10px 16px;display:flex;flex-direction:column;gap:10px;}
-    .footer-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:var(--bg);display:flex;gap:10px;}
-    .footer-btn{flex:1;padding:14px;border-radius:16px;font-weight:600;border:none;cursor:pointer;}
-    .btn-discord{background:var(--discord);color:#fff;}
-    .btn-reset{background:var(--surface);color:var(--dim);border:1px solid var(--border);}
+    body { background: var(--bg); color: var(--text); font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .app-name { font-size: 24px; font-weight: 700; color: var(--gold); }
+    #listView { display: flex; flex-direction: column; gap: 15px; }
+    .sec-card { background: var(--surface); border-radius: 12px; padding: 15px; border: 1px solid var(--border); }
+    .item-li { padding: 8px 0; border-bottom: 1px solid var(--border); list-style: none; }
+    .item-li.done { text-decoration: line-through; color: var(--dim); }
+    button { cursor: pointer; border-radius: 8px; border: none; padding: 8px 12px; font-family: inherit; }
+    #authBtn { background: var(--surf2); color: var(--text); border: 1px solid var(--border); }
   </style>
 </head>
 <body>
-<canvas id="confettiCanvas"></canvas>
+
 <header>
-  <div class="hdr-row1">
-    <div class="app-name" id="appNameDisplay">Hazel <em>Check</em></div>
-    <div class="hdr-right" style="margin-left:auto; display:flex; align-items:center; gap:10px;">
-      <button id="authBtn" style="background:var(--surf2); border:1px solid var(--border); border-radius:20px; color:var(--dim); padding:5px 11px; font-size:11px;">🔑 로그인</button>
-    </div>
-  </div>
-  <div id="syncStatus" style="font-size:10px; color:var(--gold); height:12px;"></div>
-  <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+  <div class="app-name">Hazel Check ✨</div>
+  <button id="authBtn">로딩 중...</button>
 </header>
 
+<div id="syncStatus" style="font-size:12px; color:var(--gold); margin-bottom:10px; height:15px;"></div>
 <div id="listView"></div>
-<div id="matrixView" style="display:none;"></div>
-<div id="settingsView" style="display:none;"></div>
-
-<div class="footer-bar" id="footerBar">
-  <button class="footer-btn btn-discord" id="discordBtn">📋 Discord 인증</button>
-  <button class="footer-btn btn-reset" id="resetBtn">🌅 하루 시작</button>
-</div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getDatabase, ref, set, get, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  // 1. Firebase 라이브러리 로드
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAp9OwLP6uthZUyUmOMG648fvxRcs7MxmE",
-  authDomain: "hyperdodo-hazel.firebaseapp.com",
-  databaseURL: "https://hyperdodo-hazel-default-rtdb.firebaseio.com",
-  projectId: "hyperdodo-hazel",
-  storageBucket: "hyperdodo-hazel.firebasestorage.app",
-  messagingSenderId: "691673973840",
-  appId: "1:691673973840:web:6caaf412e505f580f3bd55"
-};
+  // 2. 하젤의 설정값 (정확히 입력됨)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAp9OwLP6uthZUyUmOMG648fvxRcs7MxmE",
+    authDomain: "hyperdodo-hazel.firebaseapp.com",
+    databaseURL: "https://hyperdodo-hazel-default-rtdb.firebaseio.com",
+    projectId: "hyperdodo-hazel",
+    storageBucket: "hyperdodo-hazel.firebasestorage.app",
+    messagingSenderId: "691673973840",
+    appId: "1:691673973840:web:6caaf412e505f580f3bd55"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
-const WORKER_URL = 'https://hazel-notion-proxy.hazelee-2626.workers.dev';
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+  const WORKER_URL = 'https://hazel-notion-proxy.hazelee-2626.workers.dev';
 
-let currentUser = null;
-let sections = [];
-let checked = {};
+  let currentUser = null;
 
-// ── 핵심 함수: Notion 연동 (Create) ──
-async function addToNotion(text, sectionName, itemId) {
-  if (!currentUser) return;
-  try {
-    const res = await fetch(`${WORKER_URL}/create`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: text, section: sectionName, itemId })
-    });
-    const data = await res.json();
-    if (data.pageId) {
-      await set(ref(db, `users/${currentUser.uid}/notionIds/${itemId}`), data.pageId);
+  // 3. 로그인 버튼 제어
+  const authBtn = document.getElementById('authBtn');
+  authBtn.onclick = async () => {
+    if (currentUser) await signOut(auth);
+    else await signInWithPopup(auth, new GoogleAuthProvider());
+  };
+
+  // 4. 상태 감지 및 동기화 시작
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if (user) {
+      authBtn.textContent = '로그아웃';
+      startSync(user.uid);
+    } else {
+      authBtn.textContent = '🔑 Google 로그인';
+      document.getElementById('listView').innerHTML = '<p style="color:var(--dim); text-align:center;">로그인하면 할 일이 보여요!</p>';
     }
-  } catch(e) { console.log("Notion 추가 실패:", e); }
-}
-
-// ── 로그인 상태 감지 ──
-onAuthStateChanged(auth, user => {
-  currentUser = user;
-  const btn = document.getElementById('authBtn');
-  if (user) {
-    btn.textContent = '로그아웃';
-    startSync();
-  } else {
-    btn.textContent = '🔑 로그인';
-    document.getElementById('listView').innerHTML = '<p style="text-align:center; padding:40px; color:var(--dim);">로그인이 필요해!</p>';
-  }
-});
-
-window.handleAuth = async () => {
-  if (currentUser) await signOut(auth);
-  else await signInWithPopup(auth, new GoogleAuthProvider());
-};
-document.getElementById('authBtn').onclick = window.handleAuth;
-
-function startSync() {
-  const uid = currentUser.uid;
-  onValue(ref(db, `users/${uid}/sections`), snap => {
-    sections = snap.val() || [];
-    render();
   });
-  onValue(ref(db, `users/${uid}/checked`), snap => {
-    checked = snap.val() || {};
-    render();
-  });
-}
 
-function render() {
-  const lv = document.getElementById('listView');
-  lv.innerHTML = '';
-  sections.forEach(sec => {
-    const div = document.createElement('div');
-    div.innerHTML = `<h3 style="margin-bottom:10px;">${sec.emoji} ${sec.name}</h3>`;
-    const ul = document.createElement('ul');
-    (sec.items || []).forEach(it => {
-      const li = document.createElement('li');
-      li.style.padding = "10px";
-      li.style.borderBottom = "1px solid var(--border)";
-      li.textContent = it.text;
-      if (checked[it.id]) li.style.textDecoration = "line-through";
-      ul.appendChild(li);
+  function startSync(uid) {
+    const statusEl = document.getElementById('syncStatus');
+    statusEl.textContent = '☁️ 동기화 중...';
+    
+    // 데이터 불러오기 (Firebase)
+    onValue(ref(db, `users/${uid}`), (snap) => {
+      const data = snap.val();
+      if (!data) return;
+      
+      const sections = data.sections || [];
+      const checked = data.checked || {};
+      
+      render(sections, checked);
+      statusEl.textContent = '✅ 동기화 완료';
+      setTimeout(() => statusEl.textContent = '', 2000);
     });
-    div.appendChild(ul);
-    lv.appendChild(div);
-  });
-}
+  }
 
-function showSyncStatus(msg) {
-  document.getElementById('syncStatus').textContent = msg;
-  setTimeout(() => document.getElementById('syncStatus').textContent = '', 3000);
-}
+  function render(sections, checked) {
+    const lv = document.getElementById('listView');
+    lv.innerHTML = '';
+    
+    sections.forEach(sec => {
+      const card = document.createElement('div');
+      card.className = 'sec-card';
+      card.innerHTML = `<h3 style="margin:0 0 10px 0;">${sec.emoji} ${sec.name}</h3>`;
+      
+      const ul = document.createElement('ul');
+      ul.style.padding = '0';
+      
+      (sec.items || []).forEach(it => {
+        const li = document.createElement('li');
+        li.className = 'item-li' + (checked[it.id] ? ' done' : '');
+        li.textContent = it.text;
+        ul.appendChild(li);
+      });
+      
+      card.appendChild(ul);
+      lv.appendChild(card);
+    });
+  }
 
-console.log("Hazel Check 시작됨! ✅");
+  console.log("Hazel Check App Loaded! 🚀");
 </script>
 </body>
 </html>

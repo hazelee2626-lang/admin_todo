@@ -65,6 +65,8 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
 .item-li.swipe-reveal .swipe-del-bg{opacity:1;}
 .swipe-archive-bg{position:absolute;left:0;top:0;bottom:0;width:80px;background:rgba(212,168,83,.25);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;font-weight:700;opacity:0;transition:opacity .15s;}
 .item-li.swipe-archive-reveal .swipe-archive-bg{opacity:1;}
+/* 플래닝 섹션 추가입력 sticky */
+.plan-sticky-add{position:sticky;bottom:0;background:var(--surface);padding:8px 0 4px;margin-top:4px;z-index:5;border-top:1px solid var(--border);}
 /* 플래닝 버튼 그룹 */
 .plan-item-btns{display:flex;gap:5px;flex-shrink:0;}
 .plan-del-btn{flex-shrink:0;background:none;border:1px solid rgba(176,112,112,.4);border-radius:20px;color:#C47A7A;font-family:inherit;font-size:11px;font-weight:600;padding:3px 8px;cursor:pointer;touch-action:manipulation;white-space:nowrap;}
@@ -204,37 +206,86 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
 .sheet-ok{flex:2;border:none;border-radius:13px;color:#fff;font-family:inherit;font-size:15px;font-weight:700;padding:14px;cursor:pointer;}
 @keyframes bop{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
 .bop{animation:bop .22s ease;}
+/* ═══ 히스토리 뷰 ════════════════════════════════════ */
+.hist-section-title{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;padding:0 2px 10px;}
+/* 잔디 캘린더 */
+.heatmap-wrap{background:var(--surface);border-radius:18px;padding:16px;}
+.heatmap-months{display:flex;gap:2px;margin-bottom:6px;padding-left:28px;}
+.heatmap-month-label{font-size:9px;color:var(--faint);flex:1;text-align:left;}
+.heatmap-grid{display:flex;gap:3px;}
+.heatmap-days-label{display:flex;flex-direction:column;gap:3px;margin-right:4px;}
+.heatmap-day-label{font-size:8px;color:var(--faint);height:12px;line-height:12px;text-align:right;}
+.heatmap-weeks{display:flex;gap:3px;flex:1;}
+.heatmap-week{display:flex;flex-direction:column;gap:3px;}
+.heatmap-cell{width:12px;height:12px;border-radius:2px;cursor:pointer;transition:transform .1s;}
+.heatmap-cell:active{transform:scale(1.3);}
+.heatmap-cell.empty{background:var(--surf2);}
+.heatmap-cell.pct-0{background:var(--border);}
+.heatmap-cell.pct-25{background:rgba(212,168,83,.25);}
+.heatmap-cell.pct-50{background:rgba(212,168,83,.5);}
+.heatmap-cell.pct-75{background:rgba(212,168,83,.75);}
+.heatmap-cell.pct-100{background:var(--gold);}
+.heatmap-legend{display:flex;align-items:center;gap:4px;margin-top:10px;justify-content:flex-end;}
+.heatmap-legend-label{font-size:9px;color:var(--faint);}
+.heatmap-legend-cell{width:10px;height:10px;border-radius:2px;}
+/* 상세 팝업 */
+.hist-detail{background:var(--surface);border-radius:18px;padding:16px;margin-top:8px;display:none;}
+.hist-detail.show{display:block;}
+.hist-detail-date{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:12px;}
+.hist-detail-sec{margin-bottom:10px;}
+.hist-detail-sec-name{font-size:11px;font-weight:600;color:var(--dim);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.hist-detail-item{font-size:13px;padding:4px 0;display:flex;align-items:center;gap:8px;color:var(--text);}
+.hist-detail-item.done{color:var(--dim);}
+.hist-done-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+/* 통계 카드 */
+.stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-card{background:var(--surface);border-radius:14px;padding:14px;}
+.stat-card-full{background:var(--surface);border-radius:14px;padding:14px;}
+.stat-num{font-size:28px;font-weight:700;color:var(--gold);line-height:1;}
+.stat-label{font-size:11px;color:var(--dim);margin-top:4px;}
+/* 섹션별 완료율 바 */
+.sec-rate-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sec-rate-name{font-size:12px;color:var(--text);width:70px;flex-shrink:0;word-break:keep-all;}
+.sec-rate-bar-wrap{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.sec-rate-bar{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.sec-rate-pct{font-size:11px;color:var(--dim);width:32px;text-align:right;flex-shrink:0;}
+/* 스트릭 그래프 */
+.streak-graph{display:flex;align-items:flex-end;gap:3px;height:60px;margin-top:8px;}
+.streak-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.streak-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .4s ease;}
+.streak-bar-label{font-size:8px;color:var(--faint);}
+
 /* ═══ 아카이브 섹션 ════════════════════════════════════ */
-.archive-card{background:var(--surface);border-radius:18px;overflow:hidden;opacity:.85;}
+.archive-card{background:var(–surface);border-radius:18px;overflow:hidden;opacity:.85;}
 .archive-toggle-row{display:flex;align-items:center;gap:8px;padding:13px 14px 13px 16px;cursor:pointer;touch-action:manipulation;}
-.archive-toggle-row:active{background:var(--surf2);}
-.archive-chevron{font-size:11px;color:var(--faint);transition:transform .22s ease;flex-shrink:0;}
+.archive-toggle-row:active{background:var(–surf2);}
+.archive-chevron{font-size:11px;color:var(–faint);transition:transform .22s ease;flex-shrink:0;}
 .archive-card.open .archive-chevron{transform:rotate(90deg);}
-.archive-label{font-size:12px;font-weight:600;color:var(--faint);flex:1;letter-spacing:.3px;}
-.archive-count{font-size:11px;color:var(--faint);background:var(--surf2);border-radius:10px;padding:2px 8px;}
+.archive-label{font-size:12px;font-weight:600;color:var(–faint);flex:1;letter-spacing:.3px;}
+.archive-count{font-size:11px;color:var(–faint);background:var(–surf2);border-radius:10px;padding:2px 8px;}
 .archive-body{overflow:hidden;max-height:0;transition:max-height .3s cubic-bezier(.4,0,.2,1);}
 .archive-card.open .archive-body{max-height:4000px;}
-.archive-sec-label{font-size:11px;font-weight:600;color:var(--dim);padding:10px 16px 4px;display:flex;align-items:center;gap:5px;}
+.archive-sec-label{font-size:11px;font-weight:600;color:var(–dim);padding:10px 16px 4px;display:flex;align-items:center;gap:5px;}
 .archive-sec-pip{width:2px;height:10px;border-radius:2px;display:inline-block;}
-.archive-item{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 16px;border-bottom:1px solid var(--border);}
+.archive-item{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 16px;border-bottom:1px solid var(–border);}
 .archive-item:last-child{border-bottom:none;}
-.archive-item-text{flex:1;font-size:14px;color:var(--faint);word-break:keep-all;line-height:1.4;}
-.archive-restore-btn{width:26px;height:26px;border-radius:50%;background:var(--surf2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gold);cursor:pointer;touch-action:manipulation;flex-shrink:0;transition:background .15s;}
-.archive-restore-btn:active{background:var(--surf3);}
+.archive-item-text{flex:1;font-size:14px;color:var(–faint);word-break:keep-all;line-height:1.4;}
+.archive-restore-btn{width:26px;height:26px;border-radius:50%;background:var(–surf2);border:1px solid var(–border);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(–gold);cursor:pointer;touch-action:manipulation;flex-shrink:0;transition:background .15s;}
+.archive-restore-btn:active{background:var(–surf3);}
 /* 플래닝 완료 버튼 */
-.plan-done-btn{flex-shrink:0;background:none;border:1px solid var(--faint);border-radius:20px;color:var(--faint);font-family:inherit;font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;touch-action:manipulation;transition:border-color .15s,color .15s,background .15s;white-space:nowrap;}
-.plan-done-btn:active{border-color:var(--gold);color:var(--gold);}
+.plan-done-btn{flex-shrink:0;background:none;border:1px solid var(–faint);border-radius:20px;color:var(–faint);font-family:inherit;font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;touch-action:manipulation;transition:border-color .15s,color .15s,background .15s;white-space:nowrap;}
+.plan-done-btn:active{border-color:var(–gold);color:var(–gold);}
 /* ═══ 하루 시작 플래닝 ════════════════════════════════ */
 .plan-section{margin-bottom:20px;}
-.plan-sec-title{font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.plan-sec-title{font-size:12px;font-weight:700;color:var(–dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .plan-sec-pip{width:3px;height:12px;border-radius:2px;display:inline-block;}
 .plan-items{display:flex;flex-direction:column;gap:6px;}
-.plan-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surf2);border-radius:12px;border:1.5px solid var(--border);cursor:pointer;touch-action:manipulation;transition:border-color .15s,background .15s;}
-.plan-item.selected{border-color:var(--col);background:rgba(0,0,0,.05);}
-.plan-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:background .15s,border-color .15s;}
-.plan-item.selected .plan-check{background:var(--col);border-color:var(--col);color:var(--bg);}
+.plan-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(–surf2);border-radius:12px;border:1.5px solid var(–border);cursor:pointer;touch-action:manipulation;transition:border-color .15s,background .15s;}
+.plan-item.selected{border-color:var(–col);background:rgba(0,0,0,.05);}
+.plan-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(–border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:background .15s,border-color .15s;}
+.plan-item.selected .plan-check{background:var(–col);border-color:var(–col);color:var(–bg);}
 .plan-label{font-size:14px;flex:1;word-break:keep-all;}
-.plan-empty{font-size:13px;color:var(--faint);text-align:center;padding:12px;}
+.plan-empty{font-size:13px;color:var(–faint);text-align:center;padding:12px;}
 
 /* 완료된 날 배지 */
 .day-done-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.85);background:var(–surface);border:1px solid var(–gold);border-radius:24px;padding:28px 32px;text-align:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 16px 48px rgba(0,0,0,.5);}
@@ -259,6 +310,7 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
       <div class="view-toggle">
         <button class="vtog active" id="btnList">☰</button>
         <button class="vtog" id="btnMatrix">⊞</button>
+        <button class="vtog" id="btnHistory">📊</button>
       </div>
       <button onclick="handleAuth()" id="authBtn" style="background:var(--surf2);border:1px solid var(--border);border-radius:20px;font-family:inherit;font-size:11px;color:var(--dim);cursor:pointer;padding:5px 11px;white-space:nowrap;">🔑 Google 로그인</button>
     </div>
@@ -273,6 +325,7 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
 <div id="listView"></div>
 <div id="matrixView"></div>
 <div id="settingsView"></div>
+<div id="historyView" style="display:none;padding:10px 16px;flex-direction:column;gap:16px;"></div>
 <div class="footer-bar" id="footerBar">
   <button class="footer-btn btn-discord" id="discordBtn">✨ 오늘의 인증</button>
   <button class="footer-btn btn-reset" id="resetBtn">🌅 하루 시작</button>
@@ -324,7 +377,7 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
       <div class="sheet-tag tag-todo" id="planDate"></div>
     </div>
     <div style="font-size:12px;color:var(--dim);margin-bottom:16px;">할 항목만 선택해. 나머지는 오늘 리스트에서 숨겨줄게.</div>
-    <div id="planSections"></div>
+    <div id="planSections" style="position:relative;"></div>
     <div class="sheet-actions" style="margin-top:8px;">
       <button class="sheet-cancel" id="planCancel">취소</button>
       <button class="sheet-ok" style="background:var(--gold);color:#12100B;" id="planOk">✓ 오늘 시작!</button>
@@ -720,21 +773,24 @@ gear.addEventListener('click',e=>{if(!('ontouchstart' in window))setView('settin
 
 document.getElementById('btnList').onclick=()=>setView('list');
 document.getElementById('btnMatrix').onclick=()=>setView('matrix');
+document.getElementById('btnHistory').onclick=()=>setView('history');
 
 function setView(v){
   curView=v;
-  ['list','matrix','settings'].forEach(n=>{
+  ['list','matrix','settings','history'].forEach(n=>{
     const el=document.getElementById(n+'View');
     const visible=n===v;
     el.style.display=visible?'flex':'none';
-    if(visible){el.style.flexDirection='column';el.style.gap=n==='settings'?'12px':'10px';el.style.padding=n==='list'?'10px 16px':'10px 14px';}
+    if(visible){el.style.flexDirection='column';el.style.gap=n==='settings'?'12px':'10px';el.style.padding='10px 16px';}
   });
   document.getElementById('btnList').classList.toggle('active',v==='list');
   document.getElementById('btnMatrix').classList.toggle('active',v==='matrix');
-  document.getElementById('footerBar').style.display=v==='settings'?'none':'flex';
+  document.getElementById('btnHistory').classList.toggle('active',v==='history');
+  document.getElementById('footerBar').style.display=(v==='settings'||v==='history')?'none':'flex';
   if(v==='list') render();
   if(v==='matrix') renderMatrix();
   if(v==='settings') renderSettings();
+  if(v==='history') renderHistory();
 }
 
 // ══════════════════════════════════════════════════════
@@ -813,8 +869,8 @@ function render(){
   const lv=document.getElementById('listView');
   lv.innerHTML='';
   sections.forEach(sec=>lv.appendChild(buildCard(sec)));
-  // 하루 시작 모드 && 미선택 항목이 있으면 아카이브 카드 렌더
-  if (todayPlan && todayPlan.selected) {
+  // 아카이브 카드 렌더 (todayPlan 있으면 체크)
+  if (todayPlan) {
     const archiveCard = buildArchiveCard();
     if (archiveCard) lv.appendChild(archiveCard);
   }
@@ -1449,19 +1505,27 @@ function doAdd(secKey){
 
 // 편집 모드 (-) → 아카이브로 이동 (영구 삭제 아님)
 function doArchiveItem(secKey, itemId) {
+  // todayPlan.selected가 없으면 초기화 (하루 시작 안 했어도 아카이브 동작)
   if (!todayPlan) {
-    // 하루 시작 전이면 그냥 permDone 처리
-    permDone[itemId] = true;
-    LS.set('hz_perm_done', permDone);
+    todayPlan = { date: todayStr(), selected: {} };
+  }
+  if (!todayPlan.selected) {
+    // selected가 null이면 현재 전체를 selected로 만들고 해당 항목만 제거
+    todayPlan.selected = {};
+    sections.forEach(s => {
+      todayPlan.selected[s.key] = s.items.map(it => it.id).filter(id => id !== itemId);
+    });
   } else {
-    // 하루 시작 후: todayPlan.selected에서 제거 → 아카이브 카드로 이동
-    if (todayPlan.selected) {
-      Object.keys(todayPlan.selected).forEach(key => {
-        todayPlan.selected[key] = (todayPlan.selected[key] || []).filter(id => id !== itemId);
-      });
-      LS.set('hz_plan', todayPlan);
+    Object.keys(todayPlan.selected).forEach(key => {
+      todayPlan.selected[key] = (todayPlan.selected[key] || []).filter(id => id !== itemId);
+    });
+    // 해당 섹션에 selected 없으면 해당 섹션 전체에서 제거
+    if (!todayPlan.selected[secKey]) {
+      const sec = sections.find(s => s.key === secKey);
+      if (sec) todayPlan.selected[secKey] = sec.items.map(it => it.id).filter(id => id !== itemId);
     }
   }
+  LS.set('hz_plan', todayPlan);
   // DOM에서 숨기기 (데이터는 유지)
   const li = document.querySelector(`.item-li[data-id="${itemId}"]`);
   if (li) {
@@ -1717,7 +1781,8 @@ function openPlanOverlay() {
 
     // 섹션별 추가 입력
     const addRow = document.createElement('div');
-    addRow.style.cssText = 'display:flex;gap:6px;padding:4px 0 8px;';
+    addRow.className = 'plan-sticky-add';
+    addRow.style.cssText = 'display:flex;gap:6px;';
     addRow.innerHTML = `<input class="plan-add-input" placeholder="새 항목 추가…" autocomplete="off" style="flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;"><button class="plan-add-btn" style="background:var(--surf2);border:1px solid var(--border);border-radius:10px;color:var(--gold);font-family:inherit;font-size:13px;padding:7px 12px;cursor:pointer;white-space:nowrap;">+ 추가</button>`;
     const addInput = addRow.querySelector('.plan-add-input');
     const doAddPlan = () => {
@@ -1856,15 +1921,18 @@ document.getElementById('dayDoneClose').onclick = () => {
 let archiveOpen = LS.get('hz_archive_open', false);
 
 function buildArchiveCard() {
-  if (!todayPlan || !todayPlan.selected) return null;
+  if (!todayPlan) return null;
 
   // 미선택 항목 수집 (섹션별)
+  // selected가 null이면 전체 선택 상태 → 보관된 항목 없음
   const archivedBySec = [];
-  sections.forEach(sec => {
-    const sel = todayPlan.selected[sec.key] || [];
-    const skipped = sec.items.filter(it => !sel.includes(it.id) && !permDone[it.id]);
-    if (skipped.length) archivedBySec.push({ sec, items: skipped });
-  });
+  if (todayPlan.selected) {
+    sections.forEach(sec => {
+      const sel = todayPlan.selected[sec.key] || [];
+      const skipped = sec.items.filter(it => !sel.includes(it.id) && !permDone[it.id]);
+      if (skipped.length) archivedBySec.push({ sec, items: skipped });
+    });
+  }
   if (!archivedBySec.length) return null;
 
   const totalCount = archivedBySec.reduce((a, b) => a + b.items.length, 0);
@@ -2064,6 +2132,262 @@ function startNotionSync() {
 
 function stopNotionSync() {
   if (notionPollTimer) { clearInterval(notionPollTimer); notionPollTimer = null; }
+}
+
+
+// ══════════════════════════════════════════════════════
+//  히스토리 뷰 — 잔디 캘린더 + 통계 대시보드
+// ══════════════════════════════════════════════════════
+let historyCache = null; // Firebase에서 불러온 히스토리
+
+async function loadHistory() {
+  if (!currentUser) return {};
+  try {
+    const snap = await get(ref(db, `users/${currentUser.uid}/history`));
+    return snap.val() || {};
+  } catch(e) { return {}; }
+}
+
+function pctClass(pct) {
+  if (pct === null) return 'empty';
+  if (pct === 0) return 'pct-0';
+  if (pct < 0.4) return 'pct-25';
+  if (pct < 0.7) return 'pct-50';
+  if (pct < 1.0) return 'pct-75';
+  return 'pct-100';
+}
+
+async function renderHistory() {
+  const hv = document.getElementById('historyView');
+  hv.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim);font-size:13px;">📊 불러오는 중…</div>';
+
+  const history = await loadHistory();
+  historyCache = history;
+  hv.innerHTML = '';
+
+  // ── 잔디 캘린더 (최근 16주) ──
+  const heatTitle = document.createElement('div');
+  heatTitle.className = 'hist-section-title';
+  heatTitle.textContent = '🌱 달성 캘린더';
+  hv.appendChild(heatTitle);
+
+  const heatCard = document.createElement('div');
+  heatCard.className = 'heatmap-wrap';
+
+  const today = new Date();
+  const WEEKS = 16;
+  const DAYS = WEEKS * 7;
+
+  // 날짜별 완료율 맵
+  const rateMap = {};
+  Object.entries(history).forEach(([dateKey, entry]) => {
+    const allItems = (entry.sections || []).flatMap(s => s.items || []);
+    const total = allItems.length;
+    const done = allItems.filter(it => it.completed).length;
+    rateMap[dateKey] = total > 0 ? done / total : 0;
+  });
+
+  // 월 레이블
+  const monthsRow = document.createElement('div');
+  monthsRow.className = 'heatmap-months';
+  const monthsSeen = new Set();
+  const monthLabels = [];
+  for (let w = 0; w < WEEKS; w++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (WEEKS - 1 - w) * 7);
+    const mo = d.getMonth();
+    if (!monthsSeen.has(mo)) { monthsSeen.add(mo); monthLabels.push({w, label: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'][mo]}); }
+  }
+  const dayLabels = document.createElement('div');
+  dayLabels.className = 'heatmap-days-label';
+  ['일','월','화','수','목','금','토'].forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = 'heatmap-day-label';
+    el.textContent = i % 2 === 1 ? d : '';
+    dayLabels.appendChild(el);
+  });
+
+  const weeksRow = document.createElement('div');
+  weeksRow.className = 'heatmap-weeks';
+
+  let selectedCell = null;
+  const detailPanel = document.createElement('div');
+  detailPanel.className = 'hist-detail';
+
+  for (let w = 0; w < WEEKS; w++) {
+    const weekEl = document.createElement('div');
+    weekEl.className = 'heatmap-week';
+    for (let d = 0; d < 7; d++) {
+      const cellDate = new Date(today);
+      const daysAgo = (WEEKS - 1 - w) * 7 + (6 - d);
+      cellDate.setDate(today.getDate() - daysAgo);
+      const isFuture = cellDate > today;
+      const dateKey = `${cellDate.getFullYear()}${String(cellDate.getMonth()+1).padStart(2,'0')}${String(cellDate.getDate()).padStart(2,'0')}`;
+      const pct = rateMap[dateKey] !== undefined ? rateMap[dateKey] : null;
+
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell ' + (isFuture ? 'empty' : pctClass(pct));
+      cell.title = dateKey;
+
+      if (!isFuture) {
+        const showDetail = () => {
+          if (selectedCell) selectedCell.style.outline = '';
+          selectedCell = cell;
+          cell.style.outline = '2px solid var(--gold)';
+          renderHistDetail(detailPanel, dateKey, history[dateKey]);
+          detailPanel.classList.add('show');
+        };
+        cell.addEventListener('click', showDetail);
+        cell.addEventListener('touchend', e => { e.preventDefault(); showDetail(); }, {passive:false});
+      }
+      weekEl.appendChild(cell);
+    }
+    weeksRow.appendChild(weekEl);
+  }
+
+  // 범례
+  const legend = document.createElement('div');
+  legend.className = 'heatmap-legend';
+  legend.innerHTML = '<span class="heatmap-legend-label">적음</span>';
+  ['pct-0','pct-25','pct-50','pct-75','pct-100'].forEach(cls => {
+    const c = document.createElement('div');
+    c.className = `heatmap-legend-cell ${cls}`;
+    legend.appendChild(c);
+  });
+  legend.innerHTML += '<span class="heatmap-legend-label">많음</span>';
+
+  const gridWrap = document.createElement('div');
+  gridWrap.className = 'heatmap-grid';
+  gridWrap.appendChild(dayLabels);
+  gridWrap.appendChild(weeksRow);
+
+  heatCard.appendChild(gridWrap);
+  heatCard.appendChild(legend);
+  hv.appendChild(heatCard);
+  hv.appendChild(detailPanel);
+
+  // ── 통계 대시보드 ──
+  const statTitle = document.createElement('div');
+  statTitle.className = 'hist-section-title';
+  statTitle.style.marginTop = '8px';
+  statTitle.textContent = '📈 통계';
+  hv.appendChild(statTitle);
+
+  const entries = Object.values(history);
+  const totalDays = entries.length;
+  const avgPct = totalDays > 0
+    ? Math.round(entries.reduce((sum, e) => {
+        const all = (e.sections||[]).flatMap(s=>s.items||[]);
+        return sum + (all.length ? all.filter(it=>it.completed).length/all.length : 0);
+      }, 0) / totalDays * 100)
+    : 0;
+
+  // 수치 카드
+  const statCards = document.createElement('div');
+  statCards.className = 'stat-cards';
+
+  const makeStatCard = (num, label) => {
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = `<div class="stat-num">${num}</div><div class="stat-label">${label}</div>`;
+    return card;
+  };
+  statCards.appendChild(makeStatCard(streak + '일', '현재 스트릭 🔥'));
+  statCards.appendChild(makeStatCard(avgPct + '%', '평균 완료율'));
+  statCards.appendChild(makeStatCard(totalDays + '일', '기록된 날'));
+  const perfect = entries.filter(e => {
+    const all = (e.sections||[]).flatMap(s=>s.items||[]);
+    return all.length > 0 && all.every(it=>it.completed);
+  }).length;
+  statCards.appendChild(makeStatCard(perfect + '일', '100% 달성'));
+  hv.appendChild(statCards);
+
+  // 섹션별 완료율
+  const secRateCard = document.createElement('div');
+  secRateCard.className = 'stat-card-full';
+
+  const secTitle = document.createElement('div');
+  secTitle.style.cssText = 'font-size:12px;font-weight:700;color:var(--dim);margin-bottom:12px;';
+  secTitle.textContent = '섹션별 평균 완료율';
+  secRateCard.appendChild(secTitle);
+
+  // 섹션별 집계
+  const secStats = {};
+  entries.forEach(e => {
+    (e.sections||[]).forEach(sec => {
+      if (!secStats[sec.name]) secStats[sec.name] = {col: sec.col, emoji: sec.emoji, done: 0, total: 0};
+      const items = sec.items || [];
+      secStats[sec.name].total += items.length;
+      secStats[sec.name].done += items.filter(it=>it.completed).length;
+    });
+  });
+
+  Object.entries(secStats).sort((a,b) => (b[1].done/Math.max(b[1].total,1)) - (a[1].done/Math.max(a[1].total,1))).forEach(([name, s]) => {
+    const pct = s.total > 0 ? Math.round(s.done/s.total*100) : 0;
+    const row = document.createElement('div');
+    row.className = 'sec-rate-row';
+    row.innerHTML = `<div class="sec-rate-name">${s.emoji} ${name}</div><div class="sec-rate-bar-wrap"><div class="sec-rate-bar" style="width:${pct}%;background:${s.col};"></div></div><div class="sec-rate-pct">${pct}%</div>`;
+    secRateCard.appendChild(row);
+  });
+  hv.appendChild(secRateCard);
+
+  // 최근 7일 완료율 바 그래프
+  const barCard = document.createElement('div');
+  barCard.className = 'stat-card-full';
+  const barTitle = document.createElement('div');
+  barTitle.style.cssText = 'font-size:12px;font-weight:700;color:var(--dim);margin-bottom:8px;';
+  barTitle.textContent = '최근 7일 완료율';
+  barCard.appendChild(barTitle);
+
+  const barGraph = document.createElement('div');
+  barGraph.className = 'streak-graph';
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dk = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    const rate = rateMap[dk] !== undefined ? rateMap[dk] : 0;
+    const pctH = Math.max(rate * 100, 2);
+    const dayName = ['일','월','화','수','목','금','토'][d.getDay()];
+    const wrap = document.createElement('div');
+    wrap.className = 'streak-bar-wrap';
+    wrap.innerHTML = `<div class="streak-bar" style="height:${pctH}%;background:${rate > 0.7 ? 'var(--gold)' : rate > 0.3 ? 'rgba(212,168,83,.5)' : 'var(--border)'};"></div><div class="streak-bar-label">${dayName}</div>`;
+    barGraph.appendChild(wrap);
+  }
+  barCard.appendChild(barGraph);
+  hv.appendChild(barCard);
+}
+
+function renderHistDetail(panel, dateKey, entry) {
+  panel.innerHTML = '';
+  const y = dateKey.slice(0,4), m = dateKey.slice(4,6), d = dateKey.slice(6,8);
+  const dateLabel = document.createElement('div');
+  dateLabel.className = 'hist-detail-date';
+  dateLabel.textContent = `${m}월 ${d}일 (${y})`;
+  panel.appendChild(dateLabel);
+
+  if (!entry) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:13px;color:var(--faint);padding:8px 0;';
+    empty.textContent = '기록 없음';
+    panel.appendChild(empty);
+    return;
+  }
+
+  (entry.sections||[]).forEach(sec => {
+    const items = sec.items || [];
+    if (!items.length) return;
+    const secDiv = document.createElement('div');
+    secDiv.className = 'hist-detail-sec';
+    const done = items.filter(it=>it.completed).length;
+    secDiv.innerHTML = `<div class="hist-detail-sec-name"><span style="width:3px;height:10px;border-radius:2px;background:${sec.col};display:inline-block;"></span>${sec.emoji} ${sec.name} <span style="color:var(--gold);font-size:10px;">${done}/${items.length}</span></div>`;
+    items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'hist-detail-item' + (it.completed ? ' done' : '');
+      row.innerHTML = `<div class="hist-done-dot" style="background:${it.completed ? sec.col : 'var(--border)'};"></div>${esc(it.text)}`;
+      secDiv.appendChild(row);
+    });
+    panel.appendChild(secDiv);
+  });
 }
 
 // ── Page Visibility: 탭이 다시 활성화되면 리스너 재연결 ──

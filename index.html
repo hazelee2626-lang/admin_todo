@@ -66,11 +66,17 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
 .swipe-archive-bg{position:absolute;left:0;top:0;bottom:0;width:80px;background:rgba(212,168,83,.25);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;font-weight:700;opacity:0;transition:opacity .15s;}
 .item-li.swipe-archive-reveal .swipe-archive-bg{opacity:1;}
 /* 플래닝 섹션 추가입력 sticky */
-.plan-sticky-add{position:sticky;bottom:0;background:var(--surface);padding:8px 0 4px;margin-top:4px;z-index:5;border-top:1px solid var(--border);}
+.plan-sticky-add{position:sticky;top:0;background:var(--surface);padding:6px 0 8px;margin-bottom:6px;z-index:5;border-bottom:1px solid var(--border);}
 /* 플래닝 버튼 그룹 */
 .plan-item-btns{display:flex;gap:5px;flex-shrink:0;}
 .plan-del-btn{flex-shrink:0;background:none;border:1px solid rgba(176,112,112,.4);border-radius:20px;color:#C47A7A;font-family:inherit;font-size:11px;font-weight:600;padding:3px 8px;cursor:pointer;touch-action:manipulation;white-space:nowrap;}
 .plan-del-btn:active{background:rgba(176,112,112,.15);}
+/* 완료된 항목 스타일 */
+.plan-check-done{background:var(--gold) !important;border-color:var(--gold) !important;color:#12100B !important;}
+.plan-label-done{text-decoration:line-through;color:var(--dim);}
+.plan-done-time{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-weight:400;text-decoration:none;}
+.plan-item-perm-done{opacity:.6;pointer-events:none;}
+.plan-item-perm-done .plan-del-btn{pointer-events:all;}
 .item-li:last-child{border-bottom:none;}
 .drag-handle{display:flex;align-items:center;padding:4px 4px 4px 2px;color:var(--border);font-size:15px;cursor:grab;touch-action:none;flex-shrink:0;transition:color .2s;}
 .drag-handle:active{color:var(--dim);cursor:grabbing;}
@@ -1726,31 +1732,60 @@ function initStreak(){if(lastReset){const d=dayDiff(lastReset,todayStr());if(d>1
 // ══════════════════════════════════════════════════════
 
 function makePlanItem(sec, item, curSel) {
-  const isSelected = curSel === null ? true : (curSel[sec.key] || []).includes(item.id);
+  const isSelected = curSel === null ? false : (curSel[sec.key] || []).includes(item.id);
   const el = document.createElement('div');
   el.className = 'plan-item' + (isSelected ? ' selected' : '');
   el.style.setProperty('--col', sec.col);
   el.dataset.secKey = sec.key;
   el.dataset.itemId = item.id;
-  el.innerHTML = `<div class="plan-check">${isSelected ? '✓' : ''}</div><span class="plan-label">${esc(item.text)}</span><div class="plan-item-btns"><button class="plan-done-btn">완료</button><button class="plan-del-btn">✕</button></div>`;
+  const isDoneItem = permDone[item.id];
+  const doneTime = isDoneItem && checkedTimes[item.id] ? fmtTime(checkedTimes[item.id]) : null;
+  el.innerHTML = `<div class="plan-check ${isDoneItem ? 'plan-check-done' : ''}">${isDoneItem ? '✓' : (isSelected ? '✓' : '')}</div><span class="plan-label ${isDoneItem ? 'plan-label-done' : ''}">${esc(item.text)}${doneTime ? `<span class="plan-done-time">${doneTime}</span>` : ''}</span><div class="plan-item-btns">${!isDoneItem ? '<button class="plan-done-btn">완료</button>' : ''}<button class="plan-del-btn">✕</button></div>`;
+  if (isDoneItem) el.classList.add('plan-item-perm-done');
 
   // 탭 → 선택/해제
   let _ty = 0, _tx = 0;
   el.addEventListener('touchstart', e => { _ty = e.touches[0].clientY; _tx = e.touches[0].clientX; }, {passive:true});
+  let _lastTap = 0;
   el.addEventListener('touchend', e => {
     if (e.target.closest('.plan-item-btns')) return;
+    if (el.classList.contains('plan-item-perm-done')) return;
     const dy = Math.abs(e.changedTouches[0].clientY - _ty);
     const dx = Math.abs(e.changedTouches[0].clientX - _tx);
     if (dy > 10 || dx > 10) return;
     e.preventDefault();
-    el.classList.toggle('selected');
-    el.querySelector('.plan-check').textContent = el.classList.contains('selected') ? '✓' : '';
+    const now = Date.now();
+    if (now - _lastTap < 300) {
+      // 더블탭 → 인라인 편집
+      _lastTap = 0;
+      startPlanInlineEdit(el, item, sec);
+    } else {
+      _lastTap = now;
+      setTimeout(() => {
+        if (_lastTap === now) { // 싱글탭 확정
+          el.classList.toggle('selected');
+          el.querySelector('.plan-check').textContent = el.classList.contains('selected') ? '✓' : '';
+        }
+      }, 280);
+    }
   }, {passive:false});
+  // 싱글탭 → 선택/해제 (마우스 환경)
+  // 더블탭 → 인라인 편집
+  let _dblTapTimer = null;
   el.addEventListener('click', e => {
     if (e.target.closest('.plan-item-btns')) return;
+    if (el.classList.contains('plan-item-perm-done')) return;
     if (!('ontouchstart' in window)) {
-      el.classList.toggle('selected');
-      el.querySelector('.plan-check').textContent = el.classList.contains('selected') ? '✓' : '';
+      if (_dblTapTimer) {
+        clearTimeout(_dblTapTimer); _dblTapTimer = null;
+        startPlanInlineEdit(el, item, sec);
+      } else {
+        _dblTapTimer = setTimeout(() => {
+          _dblTapTimer = null;
+          el.classList.toggle('selected');
+          el.querySelector('.plan-check').textContent = el.classList.contains('selected') ? '✓' : '';
+        }, 250);
+      }
     }
   });
 
@@ -1791,6 +1826,37 @@ function makePlanItem(sec, item, curSel) {
   return el;
 }
 
+
+// 플래닝 오버레이 인라인 편집
+function startPlanInlineEdit(el, item, sec) {
+  if (el.classList.contains('plan-editing')) return;
+  el.classList.add('plan-editing');
+  const labelEl = el.querySelector('.plan-label');
+  const origText = item.text;
+  const inp = document.createElement('input');
+  inp.className = 'plan-inline-input';
+  inp.value = origText;
+  inp.style.cssText = 'flex:1;background:var(--surf2);border:1.5px solid var(--gold);border-radius:8px;padding:4px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;';
+  labelEl.replaceWith(inp);
+  requestAnimationFrame(() => { inp.focus(); inp.select(); });
+  const commit = () => {
+    const newText = inp.value.trim() || origText;
+    item.text = newText;
+    LS.set('hz_sections', sections);
+    fbWriteSections();
+    const newLabel = document.createElement('span');
+    newLabel.className = 'plan-label';
+    newLabel.textContent = newText;
+    inp.replaceWith(newLabel);
+    el.classList.remove('plan-editing');
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+    if (e.key === 'Escape') { inp.value = origText; inp.blur(); }
+  });
+}
+
 function openPlanOverlay() {
   const today = todayStr();
   document.getElementById('planDate').textContent = today;
@@ -1798,7 +1864,8 @@ function openPlanOverlay() {
   container.innerHTML = '';
 
   // 현재 선택 상태 (없으면 전체 선택)
-  const curSel = (todayPlan && todayPlan.selected) ? todayPlan.selected : null;
+  // null이면 전체 미선택 상태로 시작 (빈 객체)
+  const curSel = (todayPlan && todayPlan.selected) ? todayPlan.selected : {};
 
   sections.forEach(sec => {
     if (!sec.items.length) return;
@@ -1819,18 +1886,18 @@ function openPlanOverlay() {
       sec.items.push({id: newId, text: txt});
       LS.set('hz_sections', sections);
       fbWriteSections();
-      // 자동으로 선택에도 추가
-      if (!curSel) {
-        // curSel null이면 전체선택 모드 — 새 항목도 그냥 보임
-      } else {
-        if (!todayPlan.selected[sec.key]) todayPlan.selected[sec.key] = [];
-        todayPlan.selected[sec.key].push(newId);
-        LS.set('hz_plan', todayPlan);
-      }
+      // 새 항목을 선택 목록에 추가 (todayPlan.selected에 반영)
+      if (!todayPlan.selected) todayPlan.selected = {};
+      if (!todayPlan.selected[sec.key]) todayPlan.selected[sec.key] = [];
+      todayPlan.selected[sec.key].push(newId);
+      LS.set('hz_plan', todayPlan);
       addInput.value = '';
-      // 새 항목 DOM 추가
-      const newEl = makePlanItem(sec, {id: newId, text: txt}, curSel);
+      addInput.focus(); // 포커스 유지 → 연속 입력 가능
+      // 새 항목 즉시 DOM에 추가 (엔터 치면 바로 보임)
+      const newEl = makePlanItem(sec, {id: newId, text: txt}, todayPlan.selected);
       itemsDiv.appendChild(newEl);
+      // 새 항목으로 스크롤
+      newEl.scrollIntoView({behavior:'smooth', block:'nearest'});
     };
     addInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAddPlan(); });
     addRow.querySelector('.plan-add-btn').addEventListener('click', doAddPlan);

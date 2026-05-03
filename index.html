@@ -1793,16 +1793,18 @@ function makePlanItem(sec, item, curSel) {
 
   // 완료 버튼 → 영구 숨김
   const doneBtn = el.querySelector('.plan-done-btn');
-  const markPermDone = e => {
-    e.stopPropagation(); e.preventDefault();
-    permDone[item.id] = true;
-    LS.set('hz_perm_done', permDone);
-    el.style.transition = 'opacity .18s, max-height .2s';
-    el.style.opacity = '0'; el.style.maxHeight = '0'; el.style.overflow = 'hidden';
-    setTimeout(() => el.remove(), 220);
-  };
-  doneBtn.addEventListener('click', markPermDone);
-  doneBtn.addEventListener('touchend', e => { e.preventDefault(); markPermDone(e); }, {passive:false});
+  if (doneBtn) {
+    const markPermDone = e => {
+      e.stopPropagation(); e.preventDefault();
+      permDone[item.id] = true;
+      LS.set('hz_perm_done', permDone);
+      el.style.transition = 'opacity .18s, max-height .2s';
+      el.style.opacity = '0'; el.style.maxHeight = '0'; el.style.overflow = 'hidden';
+      setTimeout(() => el.remove(), 220);
+    };
+    doneBtn.addEventListener('click', markPermDone);
+    doneBtn.addEventListener('touchend', e => { e.preventDefault(); markPermDone(e); }, {passive:false});
+  }
 
   // 삭제 버튼 → 실제 삭제 (플래닝 화면에서)
   const delBtn = el.querySelector('.plan-del-btn');
@@ -1924,23 +1926,11 @@ function openPlanOverlay() {
     addRow.querySelector('.plan-add-btn').addEventListener('click', doAddPlan);
     itemsDiv.appendChild(addRow);
 
-    // 미완료 항목 먼저
-  sec.items.filter(it => !permDone[it.id] && !checked[it.id]).forEach(item => {
+    // 원래 순서대로 표시 (완료는 취소선+시간으로 구분)
+  sec.items.filter(it => !permDone[it.id]).forEach(item => {
       const el = makePlanItem(sec, item, curSel);
       itemsDiv.appendChild(el);
     });
-  // 완료된 항목은 하단에 분리해서 표시
-  const doneItems = sec.items.filter(it => !permDone[it.id] && checked[it.id]);
-  if (doneItems.length) {
-    const doneDivider = document.createElement('div');
-    doneDivider.style.cssText = 'font-size:10px;color:var(--faint);padding:8px 2px 4px;letter-spacing:.4px;display:flex;align-items:center;gap:6px;';
-    doneDivider.innerHTML = `<span style="flex:1;height:1px;background:var(--border);display:block;"></span><span>완료됨</span><span style="flex:1;height:1px;background:var(--border);display:block;"></span>`;
-    itemsDiv.appendChild(doneDivider);
-    doneItems.forEach(item => {
-      const el = makePlanItem(sec, item, curSel);
-      itemsDiv.appendChild(el);
-    });
-  }
 
     if (!sec.items.length) {
       itemsDiv.innerHTML = '<div class="plan-empty">항목 없음</div>';

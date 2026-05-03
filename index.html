@@ -74,7 +74,7 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
 /* 완료된 항목 스타일 */
 .plan-check-done{background:var(--gold) !important;border-color:var(--gold) !important;color:#12100B !important;}
 .plan-label-done{text-decoration:line-through;color:var(--dim);}
-.plan-done-time{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-weight:400;text-decoration:none;}
+.plan-done-time{display:block;font-size:10px;color:var(--gold);opacity:.7;margin-top:3px;font-weight:500;text-decoration:none;letter-spacing:.2px;}
 .plan-item-perm-done{opacity:.6;pointer-events:none;}
 .plan-item-perm-done .plan-del-btn{pointer-events:all;}
 .item-li:last-child{border-bottom:none;}
@@ -1738,10 +1738,12 @@ function makePlanItem(sec, item, curSel) {
   el.style.setProperty('--col', sec.col);
   el.dataset.secKey = sec.key;
   el.dataset.itemId = item.id;
-  const isDoneItem = permDone[item.id];
-  const doneTime = isDoneItem && checkedTimes[item.id] ? fmtTime(checkedTimes[item.id]) : null;
-  el.innerHTML = `<div class="plan-check ${isDoneItem ? 'plan-check-done' : ''}">${isDoneItem ? '✓' : (isSelected ? '✓' : '')}</div><span class="plan-label ${isDoneItem ? 'plan-label-done' : ''}">${esc(item.text)}${doneTime ? `<span class="plan-done-time">${doneTime}</span>` : ''}</span><div class="plan-item-btns">${!isDoneItem ? '<button class="plan-done-btn">완료</button>' : ''}<button class="plan-del-btn">✕</button></div>`;
-  if (isDoneItem) el.classList.add('plan-item-perm-done');
+  const isPermDone = permDone[item.id];
+  const isCheckedDone = !!checked[item.id]; // 오늘 완료된 항목
+  const doneTime = isCheckedDone && checkedTimes[item.id] ? fmtTime(checkedTimes[item.id]) : (isPermDone && checkedTimes[item.id] ? fmtTime(checkedTimes[item.id]) : null);
+  const showStrike = isPermDone || isCheckedDone;
+  el.innerHTML = `<div class="plan-check ${showStrike ? 'plan-check-done' : ''}">${showStrike ? '✓' : (isSelected ? '✓' : '')}</div><span class="plan-label ${showStrike ? 'plan-label-done' : ''}">${esc(item.text)}${doneTime ? `<span class="plan-done-time">✓ ${doneTime}</span>` : ''}</span><div class="plan-item-btns">${!showStrike ? '<button class="plan-done-btn">완료</button>' : ''}<button class="plan-del-btn">✕</button></div>`;
+  if (isPermDone || isCheckedDone) el.classList.add('plan-item-perm-done');
 
   // 탭 → 선택/해제
   let _ty = 0, _tx = 0;
@@ -1839,7 +1841,12 @@ function startPlanInlineEdit(el, item, sec) {
   inp.style.cssText = 'flex:1;background:var(--surf2);border:1.5px solid var(--gold);border-radius:8px;padding:4px 10px;color:var(--text);font-family:inherit;font-size:14px;outline:none;';
   labelEl.replaceWith(inp);
   requestAnimationFrame(() => { inp.focus(); inp.select(); });
+
+  let committed = false;
   const commit = () => {
+    if (committed) return;
+    committed = true;
+    document.removeEventListener('touchstart', outsideTouch, true);
     const newText = inp.value.trim() || origText;
     item.text = newText;
     LS.set('hz_sections', sections);
@@ -1847,13 +1854,27 @@ function startPlanInlineEdit(el, item, sec) {
     const newLabel = document.createElement('span');
     newLabel.className = 'plan-label';
     newLabel.textContent = newText;
+    // 완료된 항목이면 취소선+시간 유지
+    if (checked[item.id] && checkedTimes[item.id]) {
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'plan-done-time';
+      timeSpan.textContent = fmtTime(checkedTimes[item.id]);
+      newLabel.appendChild(timeSpan);
+    }
     inp.replaceWith(newLabel);
     el.classList.remove('plan-editing');
   };
-  inp.addEventListener('blur', commit);
+
+  // 외부 터치 시 즉시 commit (다른 항목 터치해도 동작)
+  const outsideTouch = e => {
+    if (!inp.contains(e.target)) { commit(); }
+  };
+  document.addEventListener('touchstart', outsideTouch, true);
+
+  inp.addEventListener('blur', () => setTimeout(commit, 50));
   inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
-    if (e.key === 'Escape') { inp.value = origText; inp.blur(); }
+    if (e.key === 'Enter') { e.preventDefault(); commit(); inp.blur(); }
+    if (e.key === 'Escape') { inp.value = origText; commit(); inp.blur(); }
   });
 }
 
@@ -1903,10 +1924,23 @@ function openPlanOverlay() {
     addRow.querySelector('.plan-add-btn').addEventListener('click', doAddPlan);
     itemsDiv.appendChild(addRow);
 
-    sec.items.filter(it => !permDone[it.id]).forEach(item => {
+    // 미완료 항목 먼저
+  sec.items.filter(it => !permDone[it.id] && !checked[it.id]).forEach(item => {
       const el = makePlanItem(sec, item, curSel);
       itemsDiv.appendChild(el);
     });
+  // 완료된 항목은 하단에 분리해서 표시
+  const doneItems = sec.items.filter(it => !permDone[it.id] && checked[it.id]);
+  if (doneItems.length) {
+    const doneDivider = document.createElement('div');
+    doneDivider.style.cssText = 'font-size:10px;color:var(--faint);padding:8px 2px 4px;letter-spacing:.4px;display:flex;align-items:center;gap:6px;';
+    doneDivider.innerHTML = `<span style="flex:1;height:1px;background:var(--border);display:block;"></span><span>완료됨</span><span style="flex:1;height:1px;background:var(--border);display:block;"></span>`;
+    itemsDiv.appendChild(doneDivider);
+    doneItems.forEach(item => {
+      const el = makePlanItem(sec, item, curSel);
+      itemsDiv.appendChild(el);
+    });
+  }
 
     if (!sec.items.length) {
       itemsDiv.innerHTML = '<div class="plan-empty">항목 없음</div>';

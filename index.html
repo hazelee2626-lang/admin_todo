@@ -75,8 +75,8 @@ header{position:sticky;top:0;z-index:20;background:var(--bg);padding:calc(env(sa
 .plan-check-done{background:var(--gold) !important;border-color:var(--gold) !important;color:#12100B !important;}
 .plan-label-done{text-decoration:line-through;color:var(--dim);}
 .plan-done-time{display:block;font-size:10px;color:var(--gold);opacity:.7;margin-top:3px;font-weight:500;text-decoration:none;letter-spacing:.2px;}
-.plan-item-perm-done{opacity:.6;pointer-events:none;}
-.plan-item-perm-done .plan-del-btn{pointer-events:all;}
+.plan-item-perm-done{opacity:.6;}
+.plan-item-perm-done .plan-check{cursor:pointer;touch-action:manipulation;}
 .item-li:last-child{border-bottom:none;}
 .drag-handle{display:flex;align-items:center;padding:4px 4px 4px 2px;color:var(--border);font-size:15px;cursor:grab;touch-action:none;flex-shrink:0;transition:color .2s;}
 .drag-handle:active{color:var(--dim);cursor:grabbing;}
@@ -1751,11 +1751,15 @@ function makePlanItem(sec, item, curSel) {
   let _lastTap = 0;
   el.addEventListener('touchend', e => {
     if (e.target.closest('.plan-item-btns')) return;
-    if (el.classList.contains('plan-item-perm-done')) return;
     const dy = Math.abs(e.changedTouches[0].clientY - _ty);
     const dx = Math.abs(e.changedTouches[0].clientX - _tx);
     if (dy > 10 || dx > 10) return;
     e.preventDefault();
+    // 완료된 항목 탭 → 완료 취소
+    if (el.classList.contains('plan-item-perm-done')) {
+      undoItemDone(el, item, sec);
+      return;
+    }
     const now = Date.now();
     if (now - _lastTap < 300) {
       // 더블탭 → 인라인 편집
@@ -1776,7 +1780,10 @@ function makePlanItem(sec, item, curSel) {
   let _dblTapTimer = null;
   el.addEventListener('click', e => {
     if (e.target.closest('.plan-item-btns')) return;
-    if (el.classList.contains('plan-item-perm-done')) return;
+    if (el.classList.contains('plan-item-perm-done')) {
+      if (!('ontouchstart' in window)) undoItemDone(el, item, sec);
+      return;
+    }
     if (!('ontouchstart' in window)) {
       if (_dblTapTimer) {
         clearTimeout(_dblTapTimer); _dblTapTimer = null;
@@ -1878,6 +1885,62 @@ function startPlanInlineEdit(el, item, sec) {
     if (e.key === 'Enter') { e.preventDefault(); commit(); inp.blur(); }
     if (e.key === 'Escape') { inp.value = origText; commit(); inp.blur(); }
   });
+}
+
+
+// 플래닝 화면에서 완료 항목 탭 → 완료 취소
+function undoItemDone(el, item, sec) {
+  const isPermDone = permDone[item.id];
+  const isCheckedDone = !!checked[item.id];
+
+  if (isPermDone) {
+    // permDone 제거
+    delete permDone[item.id];
+    LS.set('hz_perm_done', permDone);
+  }
+  if (isCheckedDone) {
+    // 체크 취소 (메인 리스트에서도 언체크)
+    delete checked[item.id];
+    delete checkedTimes[item.id];
+    LS.set('hz_checked', checked);
+    LS.set('hz_ctimes', checkedTimes);
+    if (currentUser) {
+      remove(ref(db, `users/${currentUser.uid}/checked/${item.id}`));
+      remove(ref(db, `users/${currentUser.uid}/checkedTimes/${item.id}`));
+    }
+  }
+
+  // DOM 업데이트 — 완료 클래스 제거하고 일반 항목으로 복원
+  el.classList.remove('plan-item-perm-done');
+  const checkEl = el.querySelector('.plan-check');
+  if (checkEl) {
+    checkEl.classList.remove('plan-check-done');
+    checkEl.textContent = ''; // 미선택 상태로
+  }
+  const labelEl = el.querySelector('.plan-label');
+  if (labelEl) {
+    labelEl.classList.remove('plan-label-done');
+    // 시간 표시 제거
+    const timeEl = labelEl.querySelector('.plan-done-time');
+    if (timeEl) timeEl.remove();
+  }
+  // 완료 버튼 복원
+  const btns = el.querySelector('.plan-item-btns');
+  if (btns && !btns.querySelector('.plan-done-btn')) {
+    const doneBtn = document.createElement('button');
+    doneBtn.className = 'plan-done-btn';
+    doneBtn.textContent = '완료';
+    doneBtn.addEventListener('click', e => {
+      e.stopPropagation(); e.preventDefault();
+      permDone[item.id] = true;
+      LS.set('hz_perm_done', permDone);
+      el.style.transition = 'opacity .18s, max-height .2s';
+      el.style.opacity = '0'; el.style.maxHeight = '0'; el.style.overflow = 'hidden';
+      setTimeout(() => el.remove(), 220);
+    });
+    btns.insertBefore(doneBtn, btns.firstChild);
+  }
+  showToast('↩ 완료 취소됨');
 }
 
 function openPlanOverlay() {
